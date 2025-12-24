@@ -1,3 +1,14 @@
 spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   application:
     name: scene-pick-be
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: com.project.scenepickbe.vo
+  configuration:
+    map-underscore-to-camel-case: true
