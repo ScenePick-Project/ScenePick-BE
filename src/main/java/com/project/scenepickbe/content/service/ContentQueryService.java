@@ -1,10 +1,13 @@
 package com.project.scenepickbe.content.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.project.scenepickbe.content.converter.ContentConverter;
+import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.ContentResponseDTO;
 import com.project.scenepickbe.content.vo.ContentVo;
@@ -17,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ContentQueryService {
 	private final ContentDao contentDao;
+	private final ModelMapper modelMapper;
 
 	/**
 	 *  작품 기본 정보 조회
@@ -25,7 +29,12 @@ public class ContentQueryService {
 	 */
 	public ContentResponseDTO.BasicDTO getBasicInfo(Long contentId) {
 		ContentVo contentVo = contentDao.selectContentBasic(contentId);
-		return ContentConverter.toBasicDTO(contentVo);
+
+		if (contentVo == null) {
+			throw new GeneralException(ErrorStatus.CONTENT_NOT_FOUND);
+		}
+
+		return modelMapper.map(contentVo, ContentResponseDTO.BasicDTO.class);
 	}
 
 	/**
@@ -35,7 +44,14 @@ public class ContentQueryService {
 	 */
 	public ContentResponseDTO.PersonListDTO getPersons(Long contentId) {
 		List<PersonVo> personVoList = contentDao.selectContentPersons(contentId);
-		return ContentConverter.toPersonListDTO(personVoList);
+
+		List<ContentResponseDTO.PersonDTO> personDtos = personVoList.stream()
+			.map(vo -> modelMapper.map(vo, ContentResponseDTO.PersonDTO.class))
+			.collect(Collectors.toList());
+
+		return ContentResponseDTO.PersonListDTO.builder()
+			.persons(personDtos)
+			.build();
 	}
 
 	/**
@@ -45,6 +61,13 @@ public class ContentQueryService {
 	 */
 	public ContentResponseDTO.EpisodeListDTO getEpisodes(Long contentId) {
 		List<EpisodeVo> episodeVoList = contentDao.selectContentEpisodes(contentId);
-		return ContentConverter.toEpisodeListDTO(episodeVoList);
+
+		List<ContentResponseDTO.EpisodeDTO> episodeDtos = episodeVoList.stream()
+			.map(vo -> modelMapper.map(vo, ContentResponseDTO.EpisodeDTO.class))
+			.collect(Collectors.toList());
+
+		return ContentResponseDTO.EpisodeListDTO.builder()
+			.episodes(episodeDtos)
+			.build();
 	}
 }
