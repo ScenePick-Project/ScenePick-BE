@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.scenepickbe.content.dao.ContentDao">
+
+    <resultMap id="contentResultMap" type="com.project.scenepickbe.content.vo.ContentVo">
+        <id property="contentId" column="CONTENT_ID"/>
+        <result property="title" column="TITLE"/>
+        <result property="posterImageUrl" column="POSTER_IMAGE_URL"/>
+        <result property="synopsis" column="SYNOPSIS"/>
+
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+
+        <collection property="genres" ofType="com.project.scenepickbe.content.enums.GenreType">
+            <result column="GENRE_NAME"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectContentBasic" resultMap="contentResultMap">
+        SELECT C.CONTENT_ID,
+               C.TITLE,
+               C.POSTER_IMAGE_URL,
+               C.SYNOPSIS,
+               C.CREATED_AT,
+               C.UPDATED_AT,
+               G.GENRE_NAME
+        FROM CONTENT C
+                 LEFT OUTER JOIN CONTENT_GENRES G ON C.CONTENT_ID = G.CONTENT_ID
+        WHERE C.CONTENT_ID = #{id}
+    </select>
+
+    <select id="selectContentPersons" resultType="PersonVo">
+        SELECT P.PERSON_ID, P.NAME, P.CHAR_NAME, P.PROFILE_IMAGE_URL
+        FROM CONTENT_PERSON P
+        WHERE P.CONTENT_ID = #{id}
+    </select>
+
+    <select id="selectContentEpisodes" resultType="EpisodeVo">
+        SELECT E.EPISODE_ID, E.EPISODE_NO, E.TITLE, E.SUMMARY
+        FROM CONTENT_EPISODE E
+        WHERE E.CONTENT_ID = #{id}
+        ORDER BY EPISODE_NO
+    </select>
+
+</mapper>
+
+
