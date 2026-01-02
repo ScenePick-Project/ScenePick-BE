@@ -20,7 +20,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
 	// Member
 	MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
-	NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4002", "닉네임은 필수 입니다.");
+	NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4002", "닉네임은 필수 입니다."),
+
+	// Content
+	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
