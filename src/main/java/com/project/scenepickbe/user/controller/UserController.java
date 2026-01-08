@@ -34,7 +34,7 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userQueryService.checkUserIdDuplicate(userId)));
 	}
 
-	@Operation(summary = "회원가입", description = "회원가입을 합니다.")
+	@Operation(summary = "이메일 중복 확인", description = "이메일 중복 검사를 합니다.")
 	@PostMapping(value = "/check-email", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(@RequestBody @Valid UserEmailCheckRequestDto requestDto) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userQueryService.checkEmailDuplicate(requestDto)));
