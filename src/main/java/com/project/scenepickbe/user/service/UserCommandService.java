@@ -51,7 +51,6 @@ public class UserCommandService {
 
 		return UserSignUpResponseDto.builder()
 			.userId(userVo.getUserId())
-			.createdAt(userVo.getCreateAt())
 			.build();
 	}
 }

@@ -7,6 +7,7 @@ import com.project.scenepickbe.user.service.UserCommandService;
 import com.project.scenepickbe.user.service.UserQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class UserController {
 
 	@Operation(summary = "회원가입", description = "회원가입을 합니다.")
 	@PostMapping(value = "/check-email", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(@RequestBody UserEmailCheckRequestDto requestDto) {
+	public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(@RequestBody @Valid UserEmailCheckRequestDto requestDto) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userQueryService.checkEmailDuplicate(requestDto)));
 	}
 
