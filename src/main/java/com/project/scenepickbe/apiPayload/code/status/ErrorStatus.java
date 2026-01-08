@@ -1,12 +1,10 @@
 package com.project.scenepickbe.apiPayload.code.status;
 
-import org.springframework.http.HttpStatus;
-
 import com.project.scenepickbe.apiPayload.code.BaseErrorCode;
 import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
@@ -18,9 +16,11 @@ public enum ErrorStatus implements BaseErrorCode {
 	_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
 	_FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
-	// Member
-	MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
-	NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4002", "닉네임은 필수 입니다."),
+	// User
+	USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자가 없습니다."),
+	USERNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "이름은 필수 입니다."),
+	USER_ID_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "USER4003", "이미 존재하는 아이디입니다."),
+	USER_EMAIL_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "USER4004", "이미 존재하는 이메일입니다."),
 
 	// Content
 	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다.");
