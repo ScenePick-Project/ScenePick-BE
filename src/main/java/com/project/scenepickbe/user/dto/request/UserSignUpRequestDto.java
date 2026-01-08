@@ -36,8 +36,4 @@ public class UserSignUpRequestDto {
 	@Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
 	private String password;
 
-	@Schema(description = "회원 전화번호")
-	@NotBlank(message = "전화번호는 필수 입력입니다.")
-	private String phone;
-
 }

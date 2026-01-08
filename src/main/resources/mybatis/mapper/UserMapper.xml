@@ -4,8 +4,8 @@
 <mapper namespace="com.project.scenepickbe.user.dao.UserDao">
     <!--회원가입-->
     <insert id="insertUser">
-        INSERT INTO USERS (USER_ID, EMAIL, USERNAME, PASSWORD, PHONE, ROLE, CREATED_AT)
-        VALUES (#{vo.userId}, #{vo.email}, #{vo.username}, #{vo.password}, #{vo.phone}, #{vo.role}, SYSTIMESTAMP)
+        INSERT INTO USERS (USER_ID, EMAIL, USERNAME, PASSWORD, ROLE, CREATED_AT)
+        VALUES (#{vo.userId}, #{vo.email}, #{vo.username}, #{vo.password}, #{vo.role}, SYSTIMESTAMP)
     </insert>
 
     <!--아이디 중복 확인-->

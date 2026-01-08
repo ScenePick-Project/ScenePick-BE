@@ -38,7 +38,6 @@ class UserCommandServiceTest {
 			.email("test1234@example.com")
 			.password("password1234")
 			.username("테스트")
-			.phone("010-1234-5678")
 			.build();
 	}
 

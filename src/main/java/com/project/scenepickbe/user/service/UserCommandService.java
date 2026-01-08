@@ -43,7 +43,6 @@ public class UserCommandService {
 			.email(requestDto.getEmail())
 			.password(passwordEncoder.encode(requestDto.getPassword()))
 			.username(requestDto.getUsername())
-			.phone(requestDto.getPhone())
 			.role(Role.USER)
 			.build();
 
