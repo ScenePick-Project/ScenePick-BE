@@ -24,7 +24,7 @@ public class UserController {
 
 	@Operation(summary = "회원가입", description = "회원가입을 합니다.")
 	@PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignUpRequestDto requestDto) {
+	public ResponseEntity<ApiResponse<?>> signup(@RequestBody @Valid UserSignUpRequestDto requestDto) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userCommandService.signup(requestDto)));
 	}
 
