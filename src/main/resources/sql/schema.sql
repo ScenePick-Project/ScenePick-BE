@@ -78,3 +78,24 @@ INSERT INTO CONTENT_EPISODE (CONTENT_ID, EPISODE_NO, TITLE, SUMMARY)
 VALUES (1, 1, '1화', '철거 직전의 아파트, 그린홈으로 이사 온 지 일주일. 집에만 틀어박혀 지내던 현수는 무섭게 돌변한 주민을 목격한다. 내가 먼저 사라지려고 했는데, 세상이 먼저 망했다.');
 INSERT INTO CONTENT_EPISODE (CONTENT_ID, EPISODE_NO, TITLE, SUMMARY)
 VALUES (1, 2, '2화', '전염병일까? 국가재난경보가 발령되자 긴장하는 주민들. 괴물에게 물린 상욱을 가둬버린다. 현수는 위험에 처한 아이들을 모른 척할 수없다. 그래, 나가보자. 집 밖으로.');
+
+-- 유저 테이블
+CREATE TABLE USERS
+(
+    USER_ID    VARCHAR2(50)                NOT NULL,
+    EMAIL      VARCHAR2(100)               NOT NULL,
+    USERNAME   VARCHAR2(30)                NOT NULL,
+    PASSWORD   VARCHAR2(150),
+    PHONE      VARCHAR2(20),
+    BAN_YN     VARCHAR2(1)  DEFAULT 'N',
+    ROLE       VARCHAR2(10) DEFAULT 'USER' NOT NULL,
+    CREATED_AT TIMESTAMP    DEFAULT SYSTIMESTAMP,
+    UPDATED_AT TIMESTAMP,
+    DEL_YN     VARCHAR2(1)  DEFAULT 'N'    NOT NULL,
+    DELETED_AT TIMESTAMP,
+
+    CONSTRAINT PK_USERS PRIMARY KEY (USER_ID),
+    CONSTRAINT UK_USERS_EMAIL UNIQUE (EMAIL),
+    CONSTRAINT CK_USERS_BAN_YN CHECK (BAN_YN IN ('Y', 'N')),
+    CONSTRAINT CK_USERS_DEL_YN CHECK (DEL_YN IN ('Y', 'N'))
+);

@@ -1,16 +1,14 @@
 package com.project.scenepickbe.test;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.project.scenepickbe.test.vo.SimpleTestDao;
+import com.project.scenepickbe.test.vo.SimpleTestVo;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.project.scenepickbe.vo.SimpleTestDao;
-import com.project.scenepickbe.vo.SimpleTestVo;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
