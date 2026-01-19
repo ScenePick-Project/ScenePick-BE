@@ -18,7 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
 import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
-import com.project.scenepickbe.content.dto.ContentResponseDTO;
+import com.project.scenepickbe.content.dto.ContentResponseDto;
 import com.project.scenepickbe.content.enums.GenreType;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.content.vo.EpisodeVo;
@@ -52,7 +52,7 @@ class ContentQueryServiceTest {
 
 		when(contentDao.selectContentBasic(contentId)).thenReturn(mockVo);
 
-		ContentResponseDTO.BasicDTO result = contentQueryService.getBasicInfo(contentId);
+		ContentResponseDto.BasicDTO result = contentQueryService.getBasicInfo(contentId);
 
 		assertThat(result).isNotNull();
 		assertThat(result.getContentId()).isEqualTo(contentId);
@@ -99,14 +99,14 @@ class ContentQueryServiceTest {
 
 		when(contentDao.selectContentPersons(contentId)).thenReturn(List.of(mockVo1, mockVo2));
 
-		ContentResponseDTO.PersonListDTO expected = ContentResponseDTO.PersonListDTO.builder()
+		ContentResponseDto.PersonListDTO expected = ContentResponseDto.PersonListDTO.builder()
 			.persons(List.of(
-				ContentResponseDTO.PersonDTO.builder().personId(1L).name("배우A").charName("배역A").build(),
-				ContentResponseDTO.PersonDTO.builder().personId(2L).name("배우B").charName("배역B").build()
+				ContentResponseDto.PersonDTO.builder().personId(1L).name("배우A").charName("배역A").build(),
+				ContentResponseDto.PersonDTO.builder().personId(2L).name("배우B").charName("배역B").build()
 			))
 			.build();
 
-		ContentResponseDTO.PersonListDTO result = contentQueryService.getPersons(contentId);
+		ContentResponseDto.PersonListDTO result = contentQueryService.getPersons(contentId);
 
 		assertThat(result)
 			.usingRecursiveComparison()
@@ -134,14 +134,14 @@ class ContentQueryServiceTest {
 
 		when(contentDao.selectContentEpisodes(contentId)).thenReturn(List.of(mockVo1, mockVo2));
 
-		ContentResponseDTO.EpisodeListDTO expected = ContentResponseDTO.EpisodeListDTO.builder()
+		ContentResponseDto.EpisodeListDTO expected = ContentResponseDto.EpisodeListDTO.builder()
 			.episodes(List.of(
-				ContentResponseDTO.EpisodeDTO.builder().episodeId(1L).episodeNo(1).title("제목A").build(),
-				ContentResponseDTO.EpisodeDTO.builder().episodeId(2L).episodeNo(2).title("제목B").build()
+				ContentResponseDto.EpisodeDTO.builder().episodeId(1L).episodeNo(1).title("제목A").build(),
+				ContentResponseDto.EpisodeDTO.builder().episodeId(2L).episodeNo(2).title("제목B").build()
 			))
 			.build();
 
-		ContentResponseDTO.EpisodeListDTO result = contentQueryService.getEpisodes(contentId);
+		ContentResponseDto.EpisodeListDTO result = contentQueryService.getEpisodes(contentId);
 
 		assertThat(result)
 			.usingRecursiveComparison()
