@@ -34,7 +34,7 @@ public class S3Controller {
 
 	@Operation(summary = "업로드를 위해 Presigned URL 생성", description = "도메인별 업로드를 위한 Presigned URL을 생성합니다.")
 	@PostMapping("/presigned/upload/{domain}")
-	public ResponseEntity<ApiResponse<S3ResponseDto.PresignedUrlToUploadResponse>> getPresignedUrlToUpload(
+	public ResponseEntity<ApiResponse<?>> getPresignedUrlToUpload(
 		@PathVariable S3Domain domain,
 		@AuthenticationPrincipal CustomUserDetails userDetails,
 		@Valid @RequestBody S3RequestDto.PresignedUrlToUploadRequest request) {
@@ -48,7 +48,7 @@ public class S3Controller {
 
 	@Operation(summary = "다운로드를 위해 Presigned URL 생성", description = "파일 조회를 위하여 Presigned URL을 생성합니다.")
 	@GetMapping("/presigned/download")
-	public ResponseEntity<ApiResponse<S3ResponseDto.PresignedUrlToDownloadResponse>> getPresignedUrlToDownload(
+	public ResponseEntity<ApiResponse<?>> getPresignedUrlToDownload(
 		@RequestParam(value = "keyName") String keyName) {
 
 		return ResponseEntity.ok(ApiResponse.onSuccess(s3QueryService.getPresignedToDownload(keyName)));
