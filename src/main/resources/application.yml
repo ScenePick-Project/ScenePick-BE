@@ -7,10 +7,22 @@ spring:
   application:
     name: scene-pick-be
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${S3_BUCKET_NAME}
+      stack:
+        auto: false
+
 mybatis:
   mapper-locations: classpath:mybatis/mapper/**/*.xml
-  #type-aliases-package: com.project.scenepickbe.vo
   type-aliases-package: com.project.scenepickbe
   configuration:
     map-underscore-to-camel-case: true
     default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+

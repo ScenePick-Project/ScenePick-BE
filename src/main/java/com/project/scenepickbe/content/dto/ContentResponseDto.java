@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Schema(name = "ContentResponseDTO", description = "작품 응답 정보 DTO")
-public class ContentResponseDTO {
+public class ContentResponseDto {
 
 	@Data
 	@Builder
