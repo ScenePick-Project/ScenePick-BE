@@ -15,4 +15,7 @@ public interface UserDao {
 
 	// 이메일 중복 확인
 	boolean existsByEmail(@Param("email") String email);
+
+	// 회원 로그인 정보 조회
+	UserVo selectUser(@Param("loginId") String loginId);
 }
