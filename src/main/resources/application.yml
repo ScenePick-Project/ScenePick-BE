@@ -26,3 +26,11 @@ mybatis:
     map-underscore-to-camel-case: true
     default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
 
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration-minutes: 30
+  refresh-expiration-days: 14
+
+springdoc:
+  swagger-ui:
+    withCredentials: true
