@@ -115,7 +115,7 @@ public class UserController {
 			.secure(false) // 로컬 http : false / 운영 https : true
 			.sameSite("Lax")
 			.path("/api/v1/user")
-			.maxAge(Duration.ofMinutes(accessMinutes))
+			.maxAge(Duration.ofDays(refreshDays))
 			.build();
 	}
 
