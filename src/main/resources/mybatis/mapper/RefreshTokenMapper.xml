@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--DAO-->
+<mapper namespace="com.project.scenepickbe.user.dao.RefreshTokenDao">
+    <!--REFRESH TOKEN 저장-->
+    <insert id="insertUserRefreshToken">
+        INSERT INTO USER_REFRESH_TOKEN (USER_ID, JTI, EXPIRES_AT, REVOKED_YN)
+        VALUES (#{userId}, #{jti}, #{expiresAt}, 'N')
+    </insert>
+
+    <!--토큰 유효성 검사-->
+    <select id="existsActive" resultType="int">
+        SELECT COUNT(*)
+        FROM USER_REFRESH_TOKEN
+        WHERE USER_ID = #{userId}
+          AND JIT = #{jti}
+          AND REVOKED_YN = 'N'
+          AND EXPIRES_AT > SYSTIMESTAMP
+    </select>
+
+    <!--토큰 폐기-->
+    <update id="revokeUserRefreshToken">
+        UPDATE USER_REFRESH_TOKEN
+        SET REVOKED_YN = 'Y',
+            REVOKED_AT = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND JTI = #{jti}
+          AND REVOKED_YN = 'N'
+    </update>
+</mapper>
