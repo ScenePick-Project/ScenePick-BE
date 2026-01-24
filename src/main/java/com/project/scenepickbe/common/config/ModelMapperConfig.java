@@ -1,4 +1,4 @@
-package com.project.scenepickbe.config;
+package com.project.scenepickbe.common.config;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
