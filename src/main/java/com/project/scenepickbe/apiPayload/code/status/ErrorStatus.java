@@ -21,6 +21,7 @@ public enum ErrorStatus implements BaseErrorCode {
 	USERNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "이름은 필수 입니다."),
 	USER_ID_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "USER4003", "이미 존재하는 아이디입니다."),
 	USER_EMAIL_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "USER4004", "이미 존재하는 이메일입니다."),
+	USER_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "USER4005", "아이디 또는 비밀번호가 올바르지 않습니다."),
 
 	// Content
 	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다.");
