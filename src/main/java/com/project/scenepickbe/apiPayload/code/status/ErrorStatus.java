@@ -16,6 +16,12 @@ public enum ErrorStatus implements BaseErrorCode {
 	_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
 	_FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
+	// JWT
+	JWT_EXPIRED(HttpStatus.UNAUTHORIZED, "JWT4011", "만료된 토큰입니다."),
+	JWT_INVALID(HttpStatus.UNAUTHORIZED, "JWT4012", "유효하지 않은 토큰입니다."),
+	JWT_NOT_ACCESS(HttpStatus.UNAUTHORIZED, "JWT4013", "Access Token이 아닙니다."),
+	JWT_NO_AUTH(HttpStatus.UNAUTHORIZED, "JWT4014", "권한 정보가 없는 토큰입니다."),
+
 	// User
 	USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자가 없습니다."),
 	USERNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "이름은 필수 입니다."),
