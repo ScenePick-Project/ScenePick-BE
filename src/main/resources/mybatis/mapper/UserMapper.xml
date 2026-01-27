@@ -27,6 +27,17 @@
         FROM USERS
         WHERE EMAIL = #{email}
     </select>
+
+    <!--회원 로그인 정보 조회-->
+    <select id="selectUser" resultType="UserVo">
+        SELECT USER_ID
+             , EMAIL
+             , PASSWORD
+             , ROLE
+        FROM USERS
+        WHERE (USER_ID = #{loginId} OR EMAIL = #{loginId})
+          AND DEL_YN = 'N'
+    </select>
 </mapper>
 
 
