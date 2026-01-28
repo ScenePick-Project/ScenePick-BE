@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.scenepickbe.apiPayload.ApiResponse;
+import com.project.scenepickbe.common.swagger.DocSuccess;
+import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.service.ContentQueryService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +24,7 @@ public class ContentController {
 	private final ContentQueryService contentQueryService;
 
 	@Operation(summary = "작품 기본정보 조회", description = "기본정보를 조회합니다.")
+	@DocSuccess(ContentResponse.Basic.class)
 	@GetMapping("/{contentId}")
 	public ResponseEntity<ApiResponse<?>> getContentBasic(@PathVariable Long contentId) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getBasicInfo(contentId)));
@@ -29,12 +32,14 @@ public class ContentController {
 
 	@Operation(summary = "작품 출연진 조회", description = "출연진 리스트를 조회합니다.")
 	@GetMapping("/{contentId}/persons")
+	@DocSuccess(ContentResponse.PersonList.class)
 	public ResponseEntity<ApiResponse<?>> getContentPersonList(@PathVariable Long contentId) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getPersons(contentId)));
 	}
 
 	@Operation(summary = "작품 에피소드 조회", description = "에피소드 리스트를 조회합니다.")
 	@GetMapping("/{contentId}/episodes")
+	@DocSuccess(ContentResponse.EpisodeList.class)
 	public ResponseEntity<ApiResponse<?>> getContentEpisodeList(@PathVariable Long contentId) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getEpisodes(contentId)));
 	}
