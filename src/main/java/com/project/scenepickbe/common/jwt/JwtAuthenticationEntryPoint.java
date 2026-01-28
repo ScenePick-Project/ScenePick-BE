@@ -1,6 +1,7 @@
 package com.project.scenepickbe.common.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.scenepickbe.apiPayload.ApiResponse;
 import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
 import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,12 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-		response.getWriter().write(objectMapper.writeValueAsString(reasonDTO));
+		ApiResponse<?> body = ApiResponse.onFailure(
+			reasonDTO.getCode(),
+			reasonDTO.getMessage(),
+			null
+		);
+
+		response.getWriter().write(objectMapper.writeValueAsString(body));
 	}
 }
