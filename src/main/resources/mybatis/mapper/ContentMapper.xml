@@ -91,7 +91,7 @@
 
     <insert id="insertContentPerson">
         INSERT INTO CONTENT_PERSON (CONTENT_ID, NAME, CHAR_NAME, PROFILE_IMAGE_URL)
-        VALUES (#{contentId}, #{name}, #{charName}, #{profileImageUrl})
+        VALUES (#{contentId}, #{name}, #{charName}, #{profileImageUrl, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertContentEpisode">
