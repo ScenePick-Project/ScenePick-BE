@@ -5,6 +5,8 @@
 
     <resultMap id="contentResultMap" type="com.project.scenepickbe.content.vo.ContentVo">
         <id property="contentId" column="CONTENT_ID"/>
+        <result property="tmdbId" column="TMDB_ID"/>
+        <result property="contentType" column="CONTENT_TYPE"/>
         <result property="title" column="TITLE"/>
         <result property="posterImageUrl" column="POSTER_IMAGE_URL"/>
         <result property="synopsis" column="SYNOPSIS"/>
@@ -12,13 +14,15 @@
         <result property="createdAt" column="CREATED_AT"/>
         <result property="updatedAt" column="UPDATED_AT"/>
 
-        <collection property="genres" ofType="com.project.scenepickbe.content.enums.GenreType">
+        <collection property="genreList" ofType="com.project.scenepickbe.content.enums.GenreType">
             <result column="GENRE_NAME"/>
         </collection>
     </resultMap>
 
     <select id="selectContentBasic" resultMap="contentResultMap">
         SELECT C.CONTENT_ID,
+               C.TMDB_ID,
+               C.CONTENT_TYPE,
                C.TITLE,
                C.POSTER_IMAGE_URL,
                C.SYNOPSIS,
@@ -37,11 +41,63 @@
     </select>
 
     <select id="selectContentEpisodes" resultType="EpisodeVo">
-        SELECT E.EPISODE_ID, E.EPISODE_NO, E.TITLE, E.SUMMARY
+        SELECT E.EPISODE_ID, E.EPISODE_NO, E.TITLE, E.SUMMARY, E.STILL_IMAGE_URL
         FROM CONTENT_EPISODE E
         WHERE E.CONTENT_ID = #{id}
         ORDER BY EPISODE_NO
     </select>
+
+    <select id="selectContentIdByTmdb" resultType="long">
+        SELECT C.CONTENT_ID
+        FROM CONTENT C
+        WHERE C.TMDB_ID = #{tmdbId}
+          AND C.CONTENT_TYPE = #{contentType}
+    </select>
+
+    <insert id="insertContent">
+        INSERT INTO CONTENT (TMDB_ID, CONTENT_TYPE, TITLE, POSTER_IMAGE_URL, SYNOPSIS)
+        VALUES (#{tmdbId}, #{contentType}, #{title}, #{posterImageUrl}, #{synopsis})
+    </insert>
+
+    <update id="updateContentByTmdb">
+        UPDATE CONTENT
+        SET TITLE = #{title},
+            POSTER_IMAGE_URL = #{posterImageUrl},
+            SYNOPSIS = #{synopsis},
+            UPDATED_AT = CURRENT_TIMESTAMP
+        WHERE TMDB_ID = #{tmdbId}
+          AND CONTENT_TYPE = #{contentType}
+    </update>
+
+    <delete id="deleteContentGenres">
+        DELETE FROM CONTENT_GENRES
+        WHERE CONTENT_ID = #{contentId}
+    </delete>
+
+    <delete id="deleteContentPersons">
+        DELETE FROM CONTENT_PERSON
+        WHERE CONTENT_ID = #{contentId}
+    </delete>
+
+    <delete id="deleteContentEpisodes">
+        DELETE FROM CONTENT_EPISODE
+        WHERE CONTENT_ID = #{contentId}
+    </delete>
+
+    <insert id="insertContentGenre">
+        INSERT INTO CONTENT_GENRES (CONTENT_ID, GENRE_NAME)
+        VALUES (#{contentId}, #{genre})
+    </insert>
+
+    <insert id="insertContentPerson">
+        INSERT INTO CONTENT_PERSON (CONTENT_ID, NAME, CHAR_NAME, PROFILE_IMAGE_URL)
+        VALUES (#{contentId}, #{name}, #{charName}, #{profileImageUrl})
+    </insert>
+
+    <insert id="insertContentEpisode">
+        INSERT INTO CONTENT_EPISODE (CONTENT_ID, EPISODE_NO, TITLE, SUMMARY, STILL_IMAGE_URL)
+        VALUES (#{contentId}, #{episodeNo}, #{title}, #{summary}, #{stillImageUrl})
+    </insert>
 
 </mapper>
 
