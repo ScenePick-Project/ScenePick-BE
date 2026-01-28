@@ -32,7 +32,8 @@ public enum ErrorStatus implements BaseErrorCode {
 	USER_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "USER4005", "아이디 또는 비밀번호가 올바르지 않습니다."),
 
 	// Content
-	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다.");
+	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다."),
+	CONTENT_IMPORT_FAIL(HttpStatus.NOT_FOUND, "CONTENT4002", "TMDB 작품 등록에 실패했습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;

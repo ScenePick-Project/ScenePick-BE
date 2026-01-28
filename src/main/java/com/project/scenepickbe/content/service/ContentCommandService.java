@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.response.ContentImportResponse;
 import com.project.scenepickbe.content.enums.ContentType;
@@ -65,10 +67,9 @@ public class ContentCommandService {
 		}
 
 		if (contentId == null) {
-			throw new IllegalStateException("TMDB 작품 등록에 실패했습니다.");
+			throw new GeneralException(ErrorStatus.CONTENT_IMPORT_FAIL);
 		}
 
-		contentVo.setContentId(contentId);
 		insertGenres(contentId, contentType, tmdbId);
 		insertPersons(contentId, contentType, tmdbId);
 		if (contentType == ContentType.TV) {
