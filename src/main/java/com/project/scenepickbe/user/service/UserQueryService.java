@@ -1,7 +1,7 @@
 package com.project.scenepickbe.user.service;
 
 import com.project.scenepickbe.user.dao.UserDao;
-import com.project.scenepickbe.user.dto.request.UserEmailCheckRequestDto;
+import com.project.scenepickbe.user.dto.UserRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +31,7 @@ public class UserQueryService {
 	 * @param requestDto 아이디 정보
 	 * @return boolean
 	 */
-	public boolean checkEmailDuplicate(UserEmailCheckRequestDto requestDto) {
-		return userDao.existsByEmail(requestDto.getEmail());
+	public boolean checkEmailDuplicate(UserRequest.UserEmailCheck requestDto) {
+		return userDao.existsByEmail(requestDto.email());
 	}
 }

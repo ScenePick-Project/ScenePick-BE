@@ -1,5 +1,6 @@
 package com.project.scenepickbe.common.config;
 
+import com.project.scenepickbe.common.jwt.JwtAuthenticationEntryPoint;
 import com.project.scenepickbe.common.jwt.JwtAuthenticationFilter;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,11 @@ import java.util.List;
 public class SecurityConfig {
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws Exception {
+	public SecurityFilterChain securityFilterChain(
+		HttpSecurity http,
+		JwtTokenProvider jwtTokenProvider,
+		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
+	) throws Exception {
 		http
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.csrf(csrf -> csrf.disable())
@@ -35,6 +40,7 @@ public class SecurityConfig {
 				corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
 				return corsConfiguration;
 			}))
+			.exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.authorizeHttpRequests(
 				auth -> auth
 					.requestMatchers(
@@ -54,7 +60,7 @@ public class SecurityConfig {
 			)
 
 			// JWT 쿠키 필터 추가
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint),
 				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
