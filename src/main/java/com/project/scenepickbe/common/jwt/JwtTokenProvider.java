@@ -1,13 +1,14 @@
 package com.project.scenepickbe.common.jwt;
 
-import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
-import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
-import com.project.scenepickbe.common.jwt.dto.JwtToken;
-import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,13 +18,19 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
+import com.project.scenepickbe.common.jwt.dto.JwtToken;
+import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -43,8 +50,8 @@ public class JwtTokenProvider {
 	private final long refreshExpMs;
 
 	public JwtTokenProvider(@Value("${jwt.secret}") String secret,
-							@Value("${jwt.access-expiration-minutes}") long accessTokenExpiration,
-							@Value("${jwt.refresh-expiration-days}") long refreshTokenExpiration) {
+		@Value("${jwt.access-expiration-minutes}") long accessTokenExpiration,
+		@Value("${jwt.refresh-expiration-days}") long refreshTokenExpiration) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.accessExpMs = Duration.ofMinutes(accessTokenExpiration).toMillis();

@@ -1,20 +1,28 @@
 package com.project.scenepickbe.user.controller;
 
-import com.project.scenepickbe.apiPayload.ApiResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.project.scenepickbe.common.apiPayload.ApiResponse;
 import com.project.scenepickbe.common.jwt.CookieProvider;
 import com.project.scenepickbe.common.jwt.dto.JwtToken;
 import com.project.scenepickbe.user.dto.UserRequest;
 import com.project.scenepickbe.user.service.UserCommandService;
 import com.project.scenepickbe.user.service.UserQueryService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -40,7 +48,8 @@ public class UserController {
 
 	@Operation(summary = "이메일 중복 확인", description = "이메일 중복 검사를 합니다.")
 	@PostMapping(value = "/check-email", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(@RequestBody @Valid UserRequest.UserEmailCheck requestDto) {
+	public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(
+		@RequestBody @Valid UserRequest.UserEmailCheck requestDto) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userQueryService.checkEmailDuplicate(requestDto)));
 	}
 
@@ -60,7 +69,8 @@ public class UserController {
 
 	@Operation(summary = "토큰 재발급", description = "refresh_token 쿠키로 access/refresh 토큰을 재발급합니다.")
 	@PostMapping(value = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse<?>> refresh(@CookieValue(name = CookieProvider.REFRESH_COOKIE, required = false) String refreshToken) {
+	public ResponseEntity<ApiResponse<?>> refresh(
+		@CookieValue(name = CookieProvider.REFRESH_COOKIE, required = false) String refreshToken) {
 		JwtToken token = userCommandService.refresh(refreshToken);
 
 		ResponseCookie accessCookie = cookieProvider.createAccessCookie(token.getAccessToken());
@@ -74,7 +84,8 @@ public class UserController {
 
 	@Operation(summary = "로그아웃", description = "refresh를 폐기하고 쿠키를 삭제합니다.")
 	@PostMapping(value = "/logout", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ApiResponse<?>> logout(@CookieValue(name = CookieProvider.REFRESH_COOKIE, required = false) String refreshToken) {
+	public ResponseEntity<ApiResponse<?>> logout(
+		@CookieValue(name = CookieProvider.REFRESH_COOKIE, required = false) String refreshToken) {
 		userCommandService.logout(refreshToken);
 
 		ResponseCookie deleteAccess = cookieProvider.deleteAccessCookie();

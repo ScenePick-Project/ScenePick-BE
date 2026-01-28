@@ -1,16 +1,15 @@
 package com.project.scenepickbe.user.service;
 
-import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
-import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
-import com.project.scenepickbe.common.jwt.JwtTokenProvider;
-import com.project.scenepickbe.common.jwt.dto.JwtToken;
-import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
-import com.project.scenepickbe.user.dao.RefreshTokenDao;
-import com.project.scenepickbe.user.dao.UserDao;
-import com.project.scenepickbe.user.dto.request.UserLoginRequestDto;
-import com.project.scenepickbe.user.dto.request.UserSignUpRequestDto;
-import com.project.scenepickbe.user.enums.Role;
-import com.project.scenepickbe.user.vo.UserVo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.*;
+
+import java.time.Instant;
+import java.util.Date;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,16 +18,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Instant;
-import java.util.Date;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
+import com.project.scenepickbe.common.jwt.JwtTokenProvider;
+import com.project.scenepickbe.common.jwt.dto.JwtToken;
+import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
+import com.project.scenepickbe.user.dao.RefreshTokenDao;
+import com.project.scenepickbe.user.dao.UserDao;
+import com.project.scenepickbe.user.dto.UserRequest;
+import com.project.scenepickbe.user.enums.Role;
+import com.project.scenepickbe.user.vo.UserVo;
 
 @ExtendWith(MockitoExtension.class)
 class UserCommandServiceTest {
@@ -48,25 +47,25 @@ class UserCommandServiceTest {
 	@Mock
 	private JwtTokenProvider jwtTokenProvider;
 
-	private UserSignUpRequestDto createRequestDto() {
-		return UserSignUpRequestDto.builder()
-			.userId("test1234")
-			.email("test1234@example.com")
-			.password("password1234")
-			.username("테스트")
-			.build();
+	private UserRequest.UserSignUp createRequestDto() {
+		return new UserRequest.UserSignUp(
+			"test1234",
+			"test1234@example.com",
+			"테스트",
+			"password1234"
+		);
 	}
 
 	@Test
 	@DisplayName("회원가입 성공")
 	void signupSuccess() {
 
-		UserSignUpRequestDto requestDto = createRequestDto();
+		UserRequest.UserSignUp requestDto = createRequestDto();
 
-		given(userDao.existsByUserId(requestDto.getUserId())).willReturn(false);
-		given(userDao.existsByEmail(requestDto.getEmail())).willReturn(false);
+		given(userDao.existsByUserId(requestDto.userId())).willReturn(false);
+		given(userDao.existsByEmail(requestDto.email())).willReturn(false);
 
-		given(passwordEncoder.encode(requestDto.getPassword())).willReturn("encodedPw");
+		given(passwordEncoder.encode(requestDto.password())).willReturn("encodedPw");
 
 		userCommandService.signup(requestDto);
 
@@ -76,9 +75,9 @@ class UserCommandServiceTest {
 	@Test
 	@DisplayName("회원가입 실패 - 아이디 중복")
 	void signupFailIdDuplicate() {
-		UserSignUpRequestDto requestDto = createRequestDto();
+		UserRequest.UserSignUp requestDto = createRequestDto();
 
-		given(userDao.existsByUserId(requestDto.getUserId())).willReturn(true);
+		given(userDao.existsByUserId(requestDto.userId())).willReturn(true);
 
 		GeneralException exception = assertThrows(GeneralException.class, () -> {
 			userCommandService.signup(requestDto);
@@ -92,10 +91,10 @@ class UserCommandServiceTest {
 	@Test
 	@DisplayName("회원가입 실패 - 이메일 중복")
 	void signupFailEmailDuplicate() {
-		UserSignUpRequestDto requestDto = createRequestDto();
+		UserRequest.UserSignUp requestDto = createRequestDto();
 
-		given(userDao.existsByUserId(requestDto.getUserId())).willReturn(false);
-		given(userDao.existsByEmail(requestDto.getEmail())).willReturn(true);
+		given(userDao.existsByUserId(requestDto.userId())).willReturn(false);
+		given(userDao.existsByEmail(requestDto.email())).willReturn(true);
 
 		GeneralException exception = assertThrows(GeneralException.class, () -> {
 			userCommandService.signup(requestDto);
@@ -110,7 +109,7 @@ class UserCommandServiceTest {
 	@DisplayName("로그인 성공")
 	void loginSuccess() {
 		// given
-		UserLoginRequestDto requestDto = new UserLoginRequestDto("testId@example.com", "pw");
+		UserRequest.UserLogin requestDto = new UserRequest.UserLogin("testId@example.com", "pw");
 		String rawPassword = "test1234";
 
 		UserVo userVo = new UserVo();
@@ -119,9 +118,8 @@ class UserCommandServiceTest {
 		userVo.setRole(Role.USER);
 		userVo.setPassword(passwordEncoder.encode(rawPassword));
 
-
 		given(userDao.selectUser("testId@example.com")).willReturn(userVo);
-		given(passwordEncoder.matches(requestDto.getPassword(), userVo.getPassword())).willReturn(true);
+		given(passwordEncoder.matches(requestDto.password(), userVo.getPassword())).willReturn(true);
 
 		JwtToken token = JwtToken.builder()
 			.grantType("Bearer")
@@ -149,14 +147,14 @@ class UserCommandServiceTest {
 	@DisplayName("로그인 실패 - 아이디/이메일이 없는 경우")
 	void loginFailUserNotFound() {
 		// given
-		UserLoginRequestDto requestDto = new UserLoginRequestDto("testId@example.com", "pw");
+		UserRequest.UserLogin requestDto = new UserRequest.UserLogin("testId@example.com", "pw");
 		when(userDao.selectUser("testId@example.com")).thenReturn(null);
 
 		// when & then
 		assertThatThrownBy(() -> userCommandService.login(requestDto))
 			.isInstanceOf(GeneralException.class)
 			.satisfies(res -> {
-				GeneralException e = (GeneralException) res;
+				GeneralException e = (GeneralException)res;
 				assertThat(e.getCode()).isEqualTo(ErrorStatus.USER_LOGIN_FAILED);
 			});
 
@@ -168,7 +166,7 @@ class UserCommandServiceTest {
 	@DisplayName("로그인 실패 - 비밀번호가 일치하지 않는 경우")
 	void loginFailInvalidPassword() {
 		// given
-		UserLoginRequestDto requestDto = new UserLoginRequestDto("testId@example.com", "wrong_pw");
+		UserRequest.UserLogin requestDto = new UserRequest.UserLogin("testId@example.com", "wrong_pw");
 
 		UserVo userVo = new UserVo();
 		userVo.setUserId("testId");
@@ -184,7 +182,7 @@ class UserCommandServiceTest {
 		assertThatThrownBy(() -> userCommandService.login(requestDto))
 			.isInstanceOf(GeneralException.class)
 			.satisfies(res -> {
-				GeneralException e = (GeneralException) res;
+				GeneralException e = (GeneralException)res;
 				assertThat(e.getCode()).isEqualTo(ErrorStatus.USER_LOGIN_FAILED);
 			});
 

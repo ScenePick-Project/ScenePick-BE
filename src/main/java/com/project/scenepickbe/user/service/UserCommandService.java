@@ -1,7 +1,14 @@
 package com.project.scenepickbe.user.service;
 
-import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
-import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
 import com.project.scenepickbe.common.jwt.dto.JwtToken;
 import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
@@ -11,15 +18,10 @@ import com.project.scenepickbe.user.dto.UserRequest;
 import com.project.scenepickbe.user.dto.UserResponse;
 import com.project.scenepickbe.user.enums.Role;
 import com.project.scenepickbe.user.vo.UserVo;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -107,7 +109,8 @@ public class UserCommandService {
 		RefreshPayload payload = jwtTokenProvider.parseRefreshToken(refreshToken);
 
 		int exists = refreshTokenDao.existsActive(payload.getUserId(), payload.getJti());
-		if (exists == 0) throw new RuntimeException("유효하지 않은 Refresh Token입니다.");
+		if (exists == 0)
+			throw new RuntimeException("유효하지 않은 Refresh Token입니다.");
 
 		refreshTokenDao.revokeUserRefreshToken(payload.getUserId(), payload.getJti());
 
@@ -137,7 +140,8 @@ public class UserCommandService {
 	 */
 	@Transactional
 	public void logout(String refreshToken) {
-		if (refreshToken == null || refreshToken.isBlank()) return;
+		if (refreshToken == null || refreshToken.isBlank())
+			return;
 		try {
 			RefreshPayload payload = jwtTokenProvider.parseRefreshToken(refreshToken);
 			refreshTokenDao.revokeUserRefreshToken(payload.getUserId(), payload.getJti());
