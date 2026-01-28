@@ -22,4 +22,7 @@ public class EpisodeVo {
 
 	/** 회차 줄거리 요약 */
 	private String summary;
+
+	/** 회차 썸네일 이미지 URL */
+	private String stillImageUrl;
 }
