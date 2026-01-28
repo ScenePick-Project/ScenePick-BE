@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
 import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
-import com.project.scenepickbe.content.dto.ContentResponseDto;
+import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.content.vo.EpisodeVo;
 import com.project.scenepickbe.content.vo.PersonVo;
@@ -27,14 +27,28 @@ public class ContentQueryService {
 	 * @param contentId 작품 고유 ID
 	 * @return 기본 정보 DTO
 	 */
-	public ContentResponseDto.BasicDTO getBasicInfo(Long contentId) {
+	public ContentResponse.Basic getBasicInfo(Long contentId) {
 		ContentVo contentVo = contentDao.selectContentBasic(contentId);
 
 		if (contentVo == null) {
 			throw new GeneralException(ErrorStatus.CONTENT_NOT_FOUND);
 		}
 
-		return modelMapper.map(contentVo, ContentResponseDto.BasicDTO.class);
+		List<String> genreList = contentVo.getGenreList() == null
+			? List.of()
+			: contentVo.getGenreList().stream()
+			.map(Enum::name)
+			.collect(Collectors.toList());
+
+		ContentResponse.Basic mapped = modelMapper.map(contentVo, ContentResponse.Basic.class);
+
+		return new ContentResponse.Basic(
+			mapped.contentId(),
+			mapped.title(),
+			mapped.posterImageUrl(),
+			mapped.synopsis(),
+			genreList
+		);
 	}
 
 	/**
@@ -42,16 +56,14 @@ public class ContentQueryService {
 	 * @param contentId 작품 고유 ID
 	 * @return 출연진 리스트 DTO
 	 */
-	public ContentResponseDto.PersonListDTO getPersons(Long contentId) {
+	public ContentResponse.PersonList getPersons(Long contentId) {
 		List<PersonVo> personVoList = contentDao.selectContentPersons(contentId);
 
-		List<ContentResponseDto.PersonDTO> personDtos = personVoList.stream()
-			.map(vo -> modelMapper.map(vo, ContentResponseDto.PersonDTO.class))
+		List<ContentResponse.Person> personDtoList = personVoList.stream()
+			.map(vo -> modelMapper.map(vo, ContentResponse.Person.class))
 			.collect(Collectors.toList());
 
-		return ContentResponseDto.PersonListDTO.builder()
-			.persons(personDtos)
-			.build();
+		return new ContentResponse.PersonList(personDtoList);
 	}
 
 	/**
@@ -59,15 +71,13 @@ public class ContentQueryService {
 	 * @param contentId 작품 고유 ID
 	 * @return 에피소드 리스트 DTO
 	 */
-	public ContentResponseDto.EpisodeListDTO getEpisodes(Long contentId) {
+	public ContentResponse.EpisodeList getEpisodes(Long contentId) {
 		List<EpisodeVo> episodeVoList = contentDao.selectContentEpisodes(contentId);
 
-		List<ContentResponseDto.EpisodeDTO> episodeDtos = episodeVoList.stream()
-			.map(vo -> modelMapper.map(vo, ContentResponseDto.EpisodeDTO.class))
+		List<ContentResponse.Episode> episodeDtoList = episodeVoList.stream()
+			.map(vo -> modelMapper.map(vo, ContentResponse.Episode.class))
 			.collect(Collectors.toList());
 
-		return ContentResponseDto.EpisodeListDTO.builder()
-			.episodes(episodeDtos)
-			.build();
+		return new ContentResponse.EpisodeList(episodeDtoList);
 	}
 }
