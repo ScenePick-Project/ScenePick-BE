@@ -1,5 +1,7 @@
 package com.project.scenepickbe.common.jwt;
 
+import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.common.jwt.dto.JwtToken;
 import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
 import io.jsonwebtoken.*;
@@ -104,13 +106,13 @@ public class JwtTokenProvider {
 		// access만 인증 생성 허용
 		String type = claims.get(CLAIM_TYPE, String.class);
 		if (!TYPE_ACCESS.equals(type)) {
-			throw new RuntimeException("Access Token이 아닙니다.");
+			throw new GeneralException(ErrorStatus.JWT_NOT_ACCESS);
 		}
 
 		// 권한 확인
 		String auth = claims.get(CLAIM_AUTH, String.class);
 		if (auth == null || auth.isBlank()) {
-			throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+			throw new GeneralException(ErrorStatus.JWT_NO_AUTH);
 		}
 
 		// 클레임에서 권한을 갖고 옴
@@ -161,9 +163,9 @@ public class JwtTokenProvider {
 				.parseSignedClaims(accessToken)
 				.getPayload();
 		} catch (ExpiredJwtException e) {
-			throw new RuntimeException("만료된 토큰입니다.", e);
+			throw new GeneralException(ErrorStatus.JWT_EXPIRED);
 		} catch (JwtException | IllegalArgumentException e) {
-			throw new RuntimeException("유효하지 않은 토큰입니다.", e);
+			throw new GeneralException(ErrorStatus.JWT_INVALID);
 		}
 	}
 }

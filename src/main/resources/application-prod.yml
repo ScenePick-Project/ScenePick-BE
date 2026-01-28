@@ -31,7 +31,7 @@ jwt:
   access-expiration-minutes: 30
   refresh-expiration-days: 14
   cookie:
-    secure: false
+    secure: true
 
 springdoc:
   swagger-ui:

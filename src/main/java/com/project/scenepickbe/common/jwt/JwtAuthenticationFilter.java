@@ -1,5 +1,6 @@
 package com.project.scenepickbe.common.jwt;
 
+import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -19,6 +20,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationEntryPoint entryPoint;
 
 	public static final String ACCESS_TOKEN_COOKIE = "access_token";
 
@@ -37,10 +39,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			try {
 				Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-			} catch (RuntimeException e) {
-				// 토큰이 만료/위조/refresh 등으로 인증 실패한 경우
-				log.debug("JWT 인증 실패: {}", e.getMessage());
+			} catch (GeneralException e) {
 				SecurityContextHolder.clearContext();
+
+				request.setAttribute("JWT_ERROR_REASON", e.getErrorReasonHttpStatus());
+
+				entryPoint.commence(
+					request,
+					response,
+					new org.springframework.security.core.AuthenticationException("JWT 인증 실패", e) {
+					}
+				);
+
+				return;
 			}
 		}
 

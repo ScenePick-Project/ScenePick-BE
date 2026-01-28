@@ -7,9 +7,8 @@ import com.project.scenepickbe.common.jwt.dto.JwtToken;
 import com.project.scenepickbe.common.jwt.dto.RefreshPayload;
 import com.project.scenepickbe.user.dao.RefreshTokenDao;
 import com.project.scenepickbe.user.dao.UserDao;
-import com.project.scenepickbe.user.dto.request.UserLoginRequestDto;
-import com.project.scenepickbe.user.dto.request.UserSignUpRequestDto;
-import com.project.scenepickbe.user.dto.response.UserSignUpResponseDto;
+import com.project.scenepickbe.user.dto.UserRequest;
+import com.project.scenepickbe.user.dto.UserResponse;
 import com.project.scenepickbe.user.enums.Role;
 import com.project.scenepickbe.user.vo.UserVo;
 import jakarta.transaction.Transactional;
@@ -40,29 +39,27 @@ public class UserCommandService {
 	 * @return UserSignUpResponseDto
 	 */
 	@Transactional
-	public UserSignUpResponseDto signup(UserSignUpRequestDto requestDto) {
+	public UserResponse.UserSignUp signup(UserRequest.UserSignUp requestDto) {
 
-		if (userDao.existsByUserId(requestDto.getUserId())) {
+		if (userDao.existsByUserId(requestDto.userId())) {
 			throw new GeneralException(ErrorStatus.USER_ID_ALREADY_EXIST);
 		}
 
-		if (userDao.existsByEmail(requestDto.getEmail())) {
+		if (userDao.existsByEmail(requestDto.email())) {
 			throw new GeneralException(ErrorStatus.USER_EMAIL_ALREADY_EXIST);
 		}
 
 		UserVo userVo = UserVo.builder()
-			.userId(requestDto.getUserId())
-			.email(requestDto.getEmail())
-			.password(passwordEncoder.encode(requestDto.getPassword()))
-			.username(requestDto.getUsername())
+			.userId(requestDto.userId())
+			.email(requestDto.email())
+			.password(passwordEncoder.encode(requestDto.password()))
+			.username(requestDto.username())
 			.role(Role.USER)
 			.build();
 
 		userDao.insertUser(userVo);
 
-		return UserSignUpResponseDto.builder()
-			.userId(userVo.getUserId())
-			.build();
+		return new UserResponse.UserSignUp(userVo.getUserId());
 	}
 
 	/**
@@ -72,8 +69,8 @@ public class UserCommandService {
 	 * @return JwtToken
 	 */
 	@Transactional
-	public JwtToken login(UserLoginRequestDto requestDto) {
-		UserVo userVo = userDao.selectUser(requestDto.getLoginId());
+	public JwtToken login(UserRequest.UserLogin requestDto) {
+		UserVo userVo = userDao.selectUser(requestDto.loginId());
 
 		// 회원정보를 찾지 못한 경우
 		if (userVo == null) {
@@ -81,7 +78,7 @@ public class UserCommandService {
 		}
 
 		// 비밀번호가 알맞지 않은 경우
-		if (!passwordEncoder.matches(requestDto.getPassword(), userVo.getPassword())) {
+		if (!passwordEncoder.matches(requestDto.password(), userVo.getPassword())) {
 			throw new GeneralException(ErrorStatus.USER_LOGIN_FAILED);
 		}
 
