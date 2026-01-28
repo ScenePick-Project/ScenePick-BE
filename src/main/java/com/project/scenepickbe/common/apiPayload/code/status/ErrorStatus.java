@@ -1,10 +1,12 @@
-package com.project.scenepickbe.apiPayload.code.status;
+package com.project.scenepickbe.common.apiPayload.code.status;
 
-import com.project.scenepickbe.apiPayload.code.BaseErrorCode;
-import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
+import org.springframework.http.HttpStatus;
+
+import com.project.scenepickbe.common.apiPayload.code.BaseErrorCode;
+import com.project.scenepickbe.common.apiPayload.code.ErrorReasonDTO;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor

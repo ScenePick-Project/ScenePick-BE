@@ -1,10 +1,10 @@
-package com.project.scenepickbe.apiPayload;
+package com.project.scenepickbe.common.apiPayload;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.project.scenepickbe.apiPayload.code.BaseCode;
-import com.project.scenepickbe.apiPayload.code.status.SuccessStatus;
+import com.project.scenepickbe.common.apiPayload.code.BaseCode;
+import com.project.scenepickbe.common.apiPayload.code.status.SuccessStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

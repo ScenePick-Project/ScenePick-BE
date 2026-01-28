@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.scenepickbe.apiPayload.ApiResponse;
+import com.project.scenepickbe.common.apiPayload.ApiResponse;
 import com.project.scenepickbe.common.swagger.DocSuccess;
 import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.service.ContentQueryService;

@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.scenepickbe.apiPayload.ApiResponse;
 import com.project.scenepickbe.common.CustomUserDetails;
+import com.project.scenepickbe.common.apiPayload.ApiResponse;
 import com.project.scenepickbe.infrastructure.s3.dto.request.S3Request;
 import com.project.scenepickbe.infrastructure.s3.enums.S3Domain;
 import com.project.scenepickbe.infrastructure.s3.service.S3CommandService;

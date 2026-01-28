@@ -1,6 +1,14 @@
 package com.project.scenepickbe.common.jwt;
 
-import com.project.scenepickbe.apiPayload.code.exception.GeneralException;
+import java.io.IOException;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -8,12 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 @RequiredArgsConstructor
 @Log4j2
@@ -61,7 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private String resolveCookie(HttpServletRequest request, String cookieName) {
 		Cookie[] cookies = request.getCookies();
-		if (cookies == null) return null;
+		if (cookies == null)
+			return null;
 
 		for (Cookie cookie : cookies) {
 			if (cookieName.equals(cookie.getName())) {

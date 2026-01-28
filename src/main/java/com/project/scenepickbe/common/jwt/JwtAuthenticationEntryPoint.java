@@ -1,19 +1,21 @@
 package com.project.scenepickbe.common.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.scenepickbe.apiPayload.ApiResponse;
-import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
-import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.scenepickbe.common.apiPayload.ApiResponse;
+import com.project.scenepickbe.common.apiPayload.code.ErrorReasonDTO;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -28,7 +30,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		AuthenticationException authException
 	) throws IOException {
 		// 필터에 담은 에러
-		ErrorReasonDTO reasonDTO = (ErrorReasonDTO) request.getAttribute("JWT_ERROR_REASON");
+		ErrorReasonDTO reasonDTO = (ErrorReasonDTO)request.getAttribute("JWT_ERROR_REASON");
 
 		// 토큰이 아예 없거나 필터에서 reason을 안 담는 경우의 기본값
 		if (reasonDTO == null) {

@@ -1,7 +1,7 @@
-package com.project.scenepickbe.apiPayload.code.exception;
+package com.project.scenepickbe.common.apiPayload.code.exception;
 
-import com.project.scenepickbe.apiPayload.code.BaseErrorCode;
-import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
+import com.project.scenepickbe.common.apiPayload.code.BaseErrorCode;
+import com.project.scenepickbe.common.apiPayload.code.ErrorReasonDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

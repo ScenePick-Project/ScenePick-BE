@@ -1,4 +1,4 @@
-package com.project.scenepickbe.apiPayload.code;
+package com.project.scenepickbe.common.apiPayload.code;
 
 public interface BaseErrorCode {
 

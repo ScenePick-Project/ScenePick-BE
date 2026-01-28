@@ -1,4 +1,4 @@
-package com.project.scenepickbe.apiPayload.code.exception;
+package com.project.scenepickbe.common.apiPayload.code.exception;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,9 +16,9 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.project.scenepickbe.apiPayload.ApiResponse;
-import com.project.scenepickbe.apiPayload.code.ErrorReasonDTO;
-import com.project.scenepickbe.apiPayload.code.status.ErrorStatus;
+import com.project.scenepickbe.common.apiPayload.ApiResponse;
+import com.project.scenepickbe.common.apiPayload.code.ErrorReasonDTO;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
