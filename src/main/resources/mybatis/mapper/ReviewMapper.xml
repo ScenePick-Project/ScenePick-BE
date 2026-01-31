@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.scenepickbe.review.dao.ReviewDao">
+
+    <insert id="insertReview" useGeneratedKeys="true" keyProperty="reviewId" keyColumn="REVIEW_ID">
+        INSERT INTO REVIEW (CONTENT_ID, USER_ID, REVIEW_BODY, IS_SPOILER, TRACK_ID, YOUTUBE_ID, START_TIME, END_TIME,
+                            CREATED_AT, DEL_YN)
+        VALUES (#{contentId},
+                #{userId},
+                #{reviewBody},
+                #{isSpoiler},
+                #{trackId},
+                #{youtubeId},
+                #{startTime},
+                #{endTime},
+                SYSTIMESTAMP,
+                'N')
+    </insert>
+
+    <select id="selectReview" resultType="ReviewVo">
+        SELECT R.REVIEW_ID,
+               R.USER_ID,
+               R.CONTENT_ID,
+               R.REVIEW_BODY,
+               R.IS_SPOILER,
+               R.TRACK_ID,
+               R.YOUTUBE_ID,
+               R.START_TIME,
+               R.END_TIME,
+               R.CREATED_AT,
+               R.UPDATED_AT
+        FROM REVIEW R
+        WHERE R.REVIEW_ID = #{value}
+          AND R.DEL_YN = 'N'
+    </select>
+
+    <select id="selectReviewList" resultType="ReviewVo">
+        SELECT R.REVIEW_ID,
+               R.USER_ID,
+               R.CONTENT_ID,
+               R.REVIEW_BODY,
+               R.IS_SPOILER,
+               R.TRACK_ID,
+               R.YOUTUBE_ID,
+               R.START_TIME,
+               R.END_TIME,
+               R.CREATED_AT,
+               R.UPDATED_AT
+        FROM REVIEW R
+        WHERE R.CONTENT_ID = #{value}
+          AND R.DEL_YN = 'N'
+        ORDER BY R.CREATED_AT DESC
+    </select>
+
+    <update id="deleteReview">
+        UPDATE REVIEW
+        SET DEL_YN     = 'Y',
+            DELETED_AT = SYSTIMESTAMP
+        WHERE REVIEW_ID = #{param1}
+          AND USER_ID = #{param2}
+          AND DEL_YN = 'N'
+    </update>
+
+</mapper>

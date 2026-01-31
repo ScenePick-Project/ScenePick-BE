@@ -49,6 +49,10 @@ dependencies {
     // modelMapper
     implementation 'org.modelmapper:modelmapper:3.2.3'
 
+    // mapstruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 

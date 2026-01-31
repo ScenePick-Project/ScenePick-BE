@@ -2,6 +2,7 @@ package com.project.scenepickbe.infrastructure.s3.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.scenepickbe.common.CustomUserDetails;
 import com.project.scenepickbe.common.apiPayload.ApiResponse;
 import com.project.scenepickbe.infrastructure.s3.dto.request.S3Request;
 import com.project.scenepickbe.infrastructure.s3.enums.S3Domain;
@@ -35,14 +35,11 @@ public class S3Controller {
 	@PostMapping("/presigned/upload/{domain}")
 	public ResponseEntity<ApiResponse<?>> getPresignedUrlToUpload(
 		@PathVariable S3Domain domain,
-		@AuthenticationPrincipal CustomUserDetails userDetails,
+		@AuthenticationPrincipal User user,
 		@Valid @RequestBody S3Request.PresignedUrlToUpload request) {
 
-		String testUserId = "testId1";
-
-		// TODO 인증 로직 완성 후 userDetails.getUserId() 수정 필요
 		return ResponseEntity.ok(
-			ApiResponse.onSuccess(s3CommandService.getPresignedUrlToUpload(testUserId, domain, request)));
+			ApiResponse.onSuccess(s3CommandService.getPresignedUrlToUpload(user.getUsername(), domain, request)));
 	}
 
 	@Operation(summary = "다운로드를 위해 Presigned URL 생성", description = "파일 조회를 위하여 Presigned URL을 생성합니다.")
