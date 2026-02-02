@@ -33,7 +33,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
 	// Content
 	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다."),
-	CONTENT_IMPORT_FAIL(HttpStatus.NOT_FOUND, "CONTENT4002", "TMDB 작품 등록에 실패했습니다.");
+	CONTENT_IMPORT_FAIL(HttpStatus.NOT_FOUND, "CONTENT4002", "TMDB 작품 등록에 실패했습니다."),
+
+	// TMDB
+	TMDB_API_FAIL(HttpStatus.BAD_GATEWAY, "TMDB5001", "TMDB API 호출에 실패했습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
