@@ -167,6 +167,6 @@ public class UserCommandService {
 		return authorities.stream()
 			.map(GrantedAuthority::getAuthority) // "ROLE_ADMIN" 같은 값
 			.findFirst()
-			.orElse("ROLE_USER"); // 기본값
+			.orElseThrow(() -> new GeneralException(ErrorStatus.JWT_NO_AUTH)); // 권한 없으면 예외
 	}
 }
