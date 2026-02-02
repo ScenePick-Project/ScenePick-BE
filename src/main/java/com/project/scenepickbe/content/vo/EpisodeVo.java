@@ -14,6 +14,9 @@ public class EpisodeVo {
 	/** 연결된 작품의 고유 식별자 (FK) */
 	private Long contentId;
 
+	/** 시즌 번호 */
+	private Integer seasonNo;
+
 	/** 회차 */
 	private Integer episodeNo;
 

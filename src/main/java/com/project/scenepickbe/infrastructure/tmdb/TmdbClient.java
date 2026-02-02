@@ -33,27 +33,40 @@ public class TmdbClient {
 			.body(TmdbResponse.MovieDetail.class);
 	}
 
-	public TmdbResponse.CreditsList getTvCredits(Long tmdbId) {
+	public TmdbResponse.CreditList getTvCredits(Long tmdbId) {
 		return tmdbRestClient.get()
-			.uri("/tv/{id}/credits", tmdbId)
+			.uri(uriBuilder -> uriBuilder.path("/tv/{id}/credits")
+				.queryParam("language", DEFAULT_LANGUAGE)
+				.build(tmdbId))
 			.retrieve()
-			.body(TmdbResponse.CreditsList.class);
+			.body(TmdbResponse.CreditList.class);
 	}
 
-	public TmdbResponse.CreditsList getMovieCredits(Long tmdbId) {
+	public TmdbResponse.CreditList getMovieCredits(Long tmdbId) {
 		return tmdbRestClient.get()
-			.uri("/movie/{id}/credits", tmdbId)
+			.uri(uriBuilder -> uriBuilder.path("/movie/{id}/credits")
+				.queryParam("language", DEFAULT_LANGUAGE)
+				.build(tmdbId))
 			.retrieve()
-			.body(TmdbResponse.CreditsList.class);
+			.body(TmdbResponse.CreditList.class);
 	}
 
-	public TmdbResponse.EpisodeList getTvSeason(Long tmdbId, Integer seasonNumber) {
+	public TmdbResponse.SeasonDetail getTvSeason(Long tmdbId, Integer seasonNumber) {
 		return tmdbRestClient.get()
 			.uri(uriBuilder -> uriBuilder.path("/tv/{id}/season/{seasonNumber}")
 				.queryParam("language", DEFAULT_LANGUAGE)
 				.build(tmdbId, seasonNumber))
 			.retrieve()
-			.body(TmdbResponse.EpisodeList.class);
+			.body(TmdbResponse.SeasonDetail.class);
+	}
+
+	public TmdbResponse.CreditList getTvSeasonCredits(Long tmdbId, Integer seasonNumber) {
+		return tmdbRestClient.get()
+			.uri(uriBuilder -> uriBuilder.path("/tv/{id}/season/{seasonNumber}/credits")
+				.queryParam("language", DEFAULT_LANGUAGE)
+				.build(tmdbId, seasonNumber))
+			.retrieve()
+			.body(TmdbResponse.CreditList.class);
 	}
 
 	public String toImageUrl(String path) {

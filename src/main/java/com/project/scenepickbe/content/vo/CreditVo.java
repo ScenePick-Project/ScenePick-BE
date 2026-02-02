@@ -5,14 +5,17 @@ import org.apache.ibatis.type.Alias;
 import lombok.Data;
 
 @Data
-@Alias("PersonVo")
-public class PersonVo {
+@Alias("CreditVo")
+public class CreditVo {
 
 	/** 출연진 고유 식별자 (PK) */
-	private Long personId;
+	private Long creditId;
 
 	/** 연결된 작품의 고유 식별자 (FK) */
 	private Long contentId;
+
+	/** 연결된 시즌의 고유 식별자 (FK) */
+	private Long seasonId;
 
 	/** 활동명 */
 	private String name;
@@ -20,6 +23,6 @@ public class PersonVo {
 	/** 배역명 */
 	private String charName;
 
-	/** 프로필 이미지 경로 */
+	/** 프로필 이미지 URL */
 	private String profileImageUrl;
 }

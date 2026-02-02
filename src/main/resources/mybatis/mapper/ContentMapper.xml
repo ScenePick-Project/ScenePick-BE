@@ -34,17 +34,33 @@
         WHERE C.CONTENT_ID = #{id}
     </select>
 
-    <select id="selectContentPersons" resultType="PersonVo">
-        SELECT P.PERSON_ID, P.NAME, P.CHAR_NAME, P.PROFILE_IMAGE_URL
-        FROM CONTENT_PERSON P
-        WHERE P.CONTENT_ID = #{id}
+    <select id="selectContentCredits" resultType="CreditVo">
+        SELECT C.CREDIT_ID, C.CONTENT_ID, C.SEASON_ID, C.NAME, C.CHAR_NAME, C.PROFILE_IMAGE_URL
+        FROM CONTENT_CREDIT C
+        WHERE C.CONTENT_ID = #{id}
     </select>
 
-    <select id="selectContentEpisodes" resultType="EpisodeVo">
-        SELECT E.EPISODE_ID, E.EPISODE_NO, E.TITLE, E.SUMMARY, E.STILL_IMAGE_URL
+    <select id="selectSeasonEpisodes" resultType="EpisodeVo">
+        SELECT E.EPISODE_ID, E.SEASON_NO, E.EPISODE_NO, E.TITLE, E.SUMMARY, E.STILL_IMAGE_URL
         FROM CONTENT_EPISODE E
-        WHERE E.CONTENT_ID = #{id}
-        ORDER BY EPISODE_NO
+        WHERE E.CONTENT_ID = #{contentId}
+          AND E.SEASON_NO = #{seasonNo}
+        ORDER BY E.EPISODE_NO
+    </select>
+
+    <select id="selectContentSeasons" resultType="ContentSeasonVo">
+        SELECT S.SEASON_ID, S.CONTENT_ID, S.SEASON_NO, S.NAME, S.OVERVIEW, S.POSTER_IMAGE_URL
+        FROM CONTENT_SEASON S
+        WHERE S.CONTENT_ID = #{id}
+        ORDER BY S.SEASON_NO
+    </select>
+
+    <select id="selectSeasonCredits" resultType="CreditVo">
+        SELECT C.CREDIT_ID, C.CONTENT_ID, C.SEASON_ID, C.NAME, C.CHAR_NAME, C.PROFILE_IMAGE_URL
+        FROM CONTENT_CREDIT C
+        INNER JOIN CONTENT_SEASON S ON S.SEASON_ID = C.SEASON_ID
+        WHERE S.CONTENT_ID = #{contentId}
+          AND S.SEASON_NO = #{seasonNo}
     </select>
 
     <select id="selectContentIdByTmdb" resultType="long">
@@ -54,16 +70,25 @@
           AND C.CONTENT_TYPE = #{contentType}
     </select>
 
+    <select id="selectSeasonId" resultType="long">
+        SELECT S.SEASON_ID
+        FROM CONTENT_SEASON S
+        WHERE S.CONTENT_ID = #{contentId}
+          AND S.SEASON_NO = #{seasonNo}
+    </select>
+
     <insert id="insertContent">
         INSERT INTO CONTENT (TMDB_ID, CONTENT_TYPE, TITLE, POSTER_IMAGE_URL, SYNOPSIS)
-        VALUES (#{tmdbId}, #{contentType}, #{title}, #{posterImageUrl}, #{synopsis})
+        VALUES (#{tmdbId}, #{contentType}, #{title},
+                #{posterImageUrl, jdbcType=VARCHAR},
+                #{synopsis, jdbcType=CLOB})
     </insert>
 
     <update id="updateContentByTmdb">
         UPDATE CONTENT
         SET TITLE = #{title},
-            POSTER_IMAGE_URL = #{posterImageUrl},
-            SYNOPSIS = #{synopsis},
+            POSTER_IMAGE_URL = #{posterImageUrl, jdbcType=VARCHAR},
+            SYNOPSIS = #{synopsis, jdbcType=CLOB},
             UPDATED_AT = CURRENT_TIMESTAMP
         WHERE TMDB_ID = #{tmdbId}
           AND CONTENT_TYPE = #{contentType}
@@ -74,8 +99,8 @@
         WHERE CONTENT_ID = #{contentId}
     </delete>
 
-    <delete id="deleteContentPersons">
-        DELETE FROM CONTENT_PERSON
+    <delete id="deleteContentCredits">
+        DELETE FROM CONTENT_CREDIT
         WHERE CONTENT_ID = #{contentId}
     </delete>
 
@@ -84,21 +109,38 @@
         WHERE CONTENT_ID = #{contentId}
     </delete>
 
+    <delete id="deleteContentSeasons">
+        DELETE FROM CONTENT_SEASON
+        WHERE CONTENT_ID = #{contentId}
+    </delete>
+
     <insert id="insertContentGenre">
         INSERT INTO CONTENT_GENRES (CONTENT_ID, GENRE_NAME)
         VALUES (#{contentId}, #{genre})
     </insert>
 
-    <insert id="insertContentPerson">
-        INSERT INTO CONTENT_PERSON (CONTENT_ID, NAME, CHAR_NAME, PROFILE_IMAGE_URL)
+    <insert id="insertContentCredit">
+        INSERT INTO CONTENT_CREDIT (CONTENT_ID, NAME, CHAR_NAME, PROFILE_IMAGE_URL)
         VALUES (#{contentId}, #{name}, #{charName}, #{profileImageUrl, jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertContentEpisode">
-        INSERT INTO CONTENT_EPISODE (CONTENT_ID, EPISODE_NO, TITLE, SUMMARY, STILL_IMAGE_URL)
-        VALUES (#{contentId}, #{episodeNo}, #{title}, #{summary}, #{stillImageUrl})
+        INSERT INTO CONTENT_EPISODE (CONTENT_ID, SEASON_NO, EPISODE_NO, TITLE, SUMMARY, STILL_IMAGE_URL)
+        VALUES (#{contentId}, #{seasonNo}, #{episodeNo}, #{title},
+                #{summary, jdbcType=VARCHAR},
+                #{stillImageUrl, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertContentSeason">
+        INSERT INTO CONTENT_SEASON (CONTENT_ID, SEASON_NO, NAME, OVERVIEW, POSTER_IMAGE_URL)
+        VALUES (#{contentId}, #{seasonNo}, #{name},
+                #{overview, jdbcType=VARCHAR},
+                #{posterImageUrl, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSeasonCredit">
+        INSERT INTO CONTENT_CREDIT (CONTENT_ID, SEASON_ID, NAME, CHAR_NAME, PROFILE_IMAGE_URL)
+        VALUES (#{contentId}, #{seasonId}, #{name}, #{charName}, #{profileImageUrl, jdbcType=VARCHAR})
     </insert>
 
 </mapper>
-
-

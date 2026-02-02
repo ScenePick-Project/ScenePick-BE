@@ -13,9 +13,10 @@ import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.response.ContentImportResponse;
 import com.project.scenepickbe.content.enums.ContentType;
 import com.project.scenepickbe.content.enums.GenreType;
+import com.project.scenepickbe.content.vo.ContentSeasonVo;
 import com.project.scenepickbe.content.vo.ContentVo;
+import com.project.scenepickbe.content.vo.CreditVo;
 import com.project.scenepickbe.content.vo.EpisodeVo;
-import com.project.scenepickbe.content.vo.PersonVo;
 import com.project.scenepickbe.infrastructure.tmdb.TmdbClient;
 import com.project.scenepickbe.infrastructure.tmdb.dto.response.TmdbResponse;
 
@@ -62,7 +63,8 @@ public class ContentCommandService {
 			contentDao.updateContentByTmdb(contentVo);
 			contentId = existingId;
 			contentDao.deleteContentGenres(contentId);
-			contentDao.deleteContentPersons(contentId);
+			contentDao.deleteContentCredits(contentId);
+			contentDao.deleteContentSeasons(contentId);
 			contentDao.deleteContentEpisodes(contentId);
 		}
 
@@ -71,9 +73,11 @@ public class ContentCommandService {
 		}
 
 		insertGenres(contentId, contentType, tmdbId);
-		insertPersons(contentId, contentType, tmdbId);
+		if (contentType == ContentType.MOVIE) {
+			insertCredits(contentId, contentType, tmdbId);
+		}
 		if (contentType == ContentType.TV) {
-			insertEpisodes(contentId, tmdbId);
+			insertSeasonsAndEpisodes(contentId, tmdbId);
 		}
 
 		return new ContentImportResponse.Result(
@@ -102,8 +106,8 @@ public class ContentCommandService {
 		if (contentType == ContentType.TV) {
 			TmdbResponse.TvDetail detail = tmdbClient.getTvDetail(tmdbId);
 			contentVo.setTitle(detail.name());
-			contentVo.setSynopsis(detail.overview());
-			contentVo.setPosterImageUrl(tmdbClient.toImageUrl(detail.posterPath()));
+			contentVo.setSynopsis(null);
+			contentVo.setPosterImageUrl(null);
 		} else {
 			TmdbResponse.MovieDetail detail = tmdbClient.getMovieDetail(tmdbId);
 			contentVo.setTitle(detail.title());
@@ -148,19 +152,19 @@ public class ContentCommandService {
 	 * @param contentType 작품 타입
 	 * @param tmdbId TMDB 작품 ID
 	 */
-	private void insertPersons(Long contentId, ContentType contentType, Long tmdbId) {
-		TmdbResponse.CreditsList credits = contentType == ContentType.TV
+	private void insertCredits(Long contentId, ContentType contentType, Long tmdbId) {
+		TmdbResponse.CreditList credits = contentType == ContentType.TV
 			? tmdbClient.getTvCredits(tmdbId)
 			: tmdbClient.getMovieCredits(tmdbId);
 
-		if (credits == null || credits.castList() == null) {
+		if (credits == null || credits.creditList() == null) {
 			return;
 		}
 
-		credits.castList().stream()
+		credits.creditList().stream()
 			.limit(MAX_CAST_COUNT)
-			.map(cast -> toPersonVo(contentId, cast))
-			.forEach(contentDao::insertContentPerson);
+			.map(credit -> toContentCreditVo(contentId, credit))
+			.forEach(contentDao::insertContentCredit);
 	}
 
 	/**
@@ -170,13 +174,13 @@ public class ContentCommandService {
 	 * @param cast TMDB 출연진 정보
 	 * @return 작품 출연진 VO
 	 */
-	private PersonVo toPersonVo(Long contentId, TmdbResponse.Cast cast) {
-		PersonVo personVo = new PersonVo();
-		personVo.setContentId(contentId);
-		personVo.setName(cast.name());
-		personVo.setCharName(cast.character());
-		personVo.setProfileImageUrl(tmdbClient.toImageUrl(cast.profilePath()));
-		return personVo;
+	private CreditVo toContentCreditVo(Long contentId, TmdbResponse.Credit credit) {
+		CreditVo creditVo = new CreditVo();
+		creditVo.setContentId(contentId);
+		creditVo.setName(credit.name());
+		creditVo.setCharName(credit.character());
+		creditVo.setProfileImageUrl(tmdbClient.toImageUrl(credit.profilePath()));
+		return creditVo;
 	}
 
 	/**
@@ -185,26 +189,46 @@ public class ContentCommandService {
 	 * @param contentId 저장된 작품 ID
 	 * @param tmdbId TMDB 작품 ID
 	 */
-	private void insertEpisodes(Long contentId, Long tmdbId) {
+	private void insertSeasonsAndEpisodes(Long contentId, Long tmdbId) {
 		TmdbResponse.TvDetail detail = tmdbClient.getTvDetail(tmdbId);
 		if (detail == null || detail.seasonSummaryList() == null) {
 			return;
 		}
+
+		String seriesOverview = detail.overview();
 
 		List<TmdbResponse.SeasonSummary> seasonSummaryList = detail.seasonSummaryList().stream()
 			.filter(season -> season.seasonNumber() != null && season.seasonNumber() > 0)
 			.toList();
 
 		for (TmdbResponse.SeasonSummary season : seasonSummaryList) {
-			TmdbResponse.EpisodeList seasonResponse = tmdbClient.getTvSeason(tmdbId,
+			TmdbResponse.SeasonDetail seasonResponse = tmdbClient.getTvSeason(tmdbId,
 				season.seasonNumber());
 			if (seasonResponse == null || seasonResponse.episodeList() == null) {
 				continue;
 			}
 
+			ContentSeasonVo seasonVo = new ContentSeasonVo();
+			seasonVo.setContentId(contentId);
+			seasonVo.setSeasonNo(season.seasonNumber());
+			seasonVo.setName(seasonResponse.name());
+			String seasonOverview = seasonResponse.overview();
+			if (seasonOverview == null || seasonOverview.isBlank()) {
+				seasonOverview = (seriesOverview == null || seriesOverview.isBlank()) ? null : seriesOverview;
+			}
+			seasonVo.setOverview(seasonOverview);
+			seasonVo.setPosterImageUrl(tmdbClient.toImageUrl(seasonResponse.posterPath()));
+			contentDao.insertContentSeason(seasonVo);
+
+			Long seasonId = contentDao.selectSeasonId(contentId, season.seasonNumber());
+			if (seasonId != null) {
+				insertSeasonCredits(contentId, seasonId, tmdbId, season.seasonNumber());
+			}
+
 			for (TmdbResponse.Episode episode : seasonResponse.episodeList()) {
 				EpisodeVo episodeVo = new EpisodeVo();
 				episodeVo.setContentId(contentId);
+				episodeVo.setSeasonNo(season.seasonNumber());
 				episodeVo.setEpisodeNo(episode.episodeNumber());
 				episodeVo.setTitle(episode.name());
 				episodeVo.setSummary(episode.overview());
@@ -212,5 +236,27 @@ public class ContentCommandService {
 				contentDao.insertContentEpisode(episodeVo);
 			}
 		}
+	}
+
+	private void insertSeasonCredits(Long contentId, Long seasonId, Long tmdbId, Integer seasonNo) {
+		TmdbResponse.CreditList credits = tmdbClient.getTvSeasonCredits(tmdbId, seasonNo);
+		if (credits == null || credits.creditList() == null) {
+			return;
+		}
+
+		credits.creditList().stream()
+			.limit(MAX_CAST_COUNT)
+			.map(credit -> toSeasonCreditVo(contentId, seasonId, credit))
+			.forEach(contentDao::insertSeasonCredit);
+	}
+
+	private CreditVo toSeasonCreditVo(Long contentId, Long seasonId, TmdbResponse.Credit credit) {
+		CreditVo creditVo = new CreditVo();
+		creditVo.setContentId(contentId);
+		creditVo.setSeasonId(seasonId);
+		creditVo.setName(credit.name());
+		creditVo.setCharName(credit.character());
+		creditVo.setProfileImageUrl(tmdbClient.toImageUrl(credit.profilePath()));
+		return creditVo;
 	}
 }

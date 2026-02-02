@@ -64,8 +64,8 @@ class ContentCommandServiceTest {
 			List.of(new TmdbResponse.Genre(28, "Action"))
 		);
 
-		TmdbResponse.CreditsList credits = new TmdbResponse.CreditsList(
-			List.of(new TmdbResponse.Cast("배우A", "배역A", "/profile.png"))
+		TmdbResponse.CreditList credits = new TmdbResponse.CreditList(
+			List.of(new TmdbResponse.Credit("배우A", "배역A", "/profile.png"))
 		);
 
 		when(contentDao.selectContentIdByTmdb(tmdbId, ContentType.MOVIE))
@@ -79,6 +79,6 @@ class ContentCommandServiceTest {
 
 		verify(contentDao).insertContent(any());
 		verify(contentDao).insertContentGenre(eq(contentId), any());
-		verify(contentDao).insertContentPerson(any());
+		verify(contentDao).insertContentCredit(any());
 	}
 }

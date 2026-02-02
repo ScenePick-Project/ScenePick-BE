@@ -30,17 +30,33 @@ public class ContentController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getBasicInfo(contentId)));
 	}
 
-	@Operation(summary = "작품 출연진 조회", description = "출연진 리스트를 조회합니다.")
-	@GetMapping("/{contentId}/persons")
-	@DocSuccess(ContentResponse.PersonList.class)
-	public ResponseEntity<ApiResponse<?>> getContentPersonList(@PathVariable Long contentId) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getPersons(contentId)));
+	@Operation(summary = "작품 출연진 조회", description = "영화 출연진 리스트를 조회합니다.")
+	@GetMapping("/{contentId}/credits")
+	@DocSuccess(ContentResponse.CreditList.class)
+	public ResponseEntity<ApiResponse<?>> getContentCreditList(@PathVariable Long contentId) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getCredits(contentId)));
 	}
 
-	@Operation(summary = "작품 에피소드 조회", description = "에피소드 리스트를 조회합니다.")
-	@GetMapping("/{contentId}/episodes")
+	@Operation(summary = "작품 시즌 에피소드 조회", description = "시즌 에피소드 리스트를 조회합니다.")
+	@GetMapping("/{contentId}/seasons/{seasonNo}/episodes")
 	@DocSuccess(ContentResponse.EpisodeList.class)
-	public ResponseEntity<ApiResponse<?>> getContentEpisodeList(@PathVariable Long contentId) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getEpisodes(contentId)));
+	public ResponseEntity<ApiResponse<?>> getContentSeasonEpisodeList(@PathVariable Long contentId,
+		@PathVariable Integer seasonNo) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getEpisodes(contentId, seasonNo)));
+	}
+
+	@Operation(summary = "작품 시즌 조회", description = "시즌 리스트를 조회합니다.")
+	@GetMapping("/{contentId}/seasons")
+	@DocSuccess(ContentResponse.SeasonList.class)
+	public ResponseEntity<ApiResponse<?>> getContentSeasonList(@PathVariable Long contentId) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getSeasons(contentId)));
+	}
+
+	@Operation(summary = "작품 시즌 출연진 조회", description = "TV 시즌별 출연진 리스트를 조회합니다.")
+	@GetMapping("/{contentId}/seasons/{seasonNo}/credits")
+	@DocSuccess(ContentResponse.CreditList.class)
+	public ResponseEntity<ApiResponse<?>> getContentSeasonCreditList(@PathVariable Long contentId,
+		@PathVariable Integer seasonNo) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getSeasonCredits(contentId, seasonNo)));
 	}
 }

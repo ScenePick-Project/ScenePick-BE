@@ -1,5 +1,7 @@
 package com.project.scenepickbe.review.vo;
 
+import java.time.LocalDateTime;
+
 import org.apache.ibatis.type.Alias;
 
 import com.project.scenepickbe.common.BaseVo;
@@ -41,6 +43,6 @@ public class ReviewVo extends BaseVo {
 	private String delYn;
 
 	/** 삭제 시각 */
-	private java.time.LocalDateTime deletedAt;
+	private LocalDateTime deletedAt;
 
 }
