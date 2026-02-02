@@ -18,18 +18,24 @@ public class ContentResponse {
 		@Schema(description = "포스터 이미지 URL")
 		String posterImageUrl,
 
-		@Schema(description = "줄거리 요약")
+		@Schema(description = "줄거리 요약 (TV는 null)")
 		String synopsis,
 
 		@Schema(description = "장르 목록", example = "[\"ACTION\", \"ROMANCE\"]")
-		List<String> genreList
+		List<String> genreList,
+
+		@Schema(description = "기본 시즌 번호 (TV는 1, 영화는 null)")
+		Integer defaultSeasonNo,
+
+		@Schema(description = "시즌 리스트 (TV만 제공)")
+		List<Season> seasonList
 	) {
 	}
 
-	@Schema(name = "Person", description = "출연진 상세 정보")
-	public record Person(
+	@Schema(name = "Credit", description = "출연진 상세 정보")
+	public record Credit(
 		@Schema(description = "출연진 ID")
-		Long personId,
+		Long creditId,
 
 		@Schema(description = "활동명")
 		String name,
@@ -42,10 +48,36 @@ public class ContentResponse {
 	) {
 	}
 
-	@Schema(name = "PersonList", description = "출연진 목록")
-	public record PersonList(
+	@Schema(name = "CreditList", description = "출연진 목록")
+	public record CreditList(
 		@Schema(description = "출연진 리스트")
-		List<Person> personList
+		List<Credit> creditList
+	) {
+	}
+
+	@Schema(name = "Season", description = "시즌 정보")
+	public record Season(
+		@Schema(description = "시즌 ID")
+		Long seasonId,
+
+		@Schema(description = "시즌 번호")
+		Integer seasonNo,
+
+		@Schema(description = "시즌 이름")
+		String name,
+
+		@Schema(description = "시즌 개요")
+		String overview,
+
+		@Schema(description = "시즌 포스터 이미지 URL")
+		String posterImageUrl
+	) {
+	}
+
+	@Schema(name = "SeasonList", description = "시즌 목록")
+	public record SeasonList(
+		@Schema(description = "시즌 리스트")
+		List<Season> seasonList
 	) {
 	}
 

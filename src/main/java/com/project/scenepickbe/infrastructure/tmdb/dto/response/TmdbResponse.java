@@ -83,8 +83,8 @@ public class TmdbResponse {
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@Schema(name = "Cast", description = "TMDB 개별 출연진 정보")
-	public record Cast(
+	@Schema(name = "Credit", description = "TMDB 개별 출연진 정보")
+	public record Credit(
 		@Schema(description = "활동명")
 		String name,
 
@@ -98,11 +98,11 @@ public class TmdbResponse {
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@Schema(name = "CreditsList", description = "TMDB 출연진 목록")
-	public record CreditsList(
+	@Schema(name = "CreditList", description = "TMDB 출연진 목록")
+	public record CreditList(
 		@JsonProperty("cast")
 		@Schema(description = "출연진 목록")
-		List<Cast> castList
+		List<Credit> creditList
 	) {
 	}
 
@@ -126,8 +126,22 @@ public class TmdbResponse {
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@Schema(name = "EpisodeList", description = "TMDB 에피소드 목록")
-	public record EpisodeList(
+	@Schema(name = "SeasonDetail", description = "TMDB 시즌 상세 정보")
+	public record SeasonDetail(
+		@JsonProperty("season_number")
+		@Schema(description = "시즌 번호", example = "1")
+		Integer seasonNumber,
+
+		@Schema(description = "시즌 이름")
+		String name,
+
+		@Schema(description = "시즌 개요")
+		String overview,
+
+		@JsonProperty("poster_path")
+		@Schema(description = "시즌 포스터 경로")
+		String posterPath,
+
 		@JsonProperty("episodes")
 		@Schema(description = "에피소드 목록")
 		List<Episode> episodeList

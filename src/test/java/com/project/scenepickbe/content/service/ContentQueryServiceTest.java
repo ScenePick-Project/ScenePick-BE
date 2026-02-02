@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
 import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
@@ -20,7 +19,7 @@ import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.enums.GenreType;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.content.vo.EpisodeVo;
-import com.project.scenepickbe.content.vo.PersonVo;
+import com.project.scenepickbe.content.vo.CreditVo;
 
 @ExtendWith(MockitoExtension.class)
 class ContentQueryServiceTest {
@@ -31,34 +30,32 @@ class ContentQueryServiceTest {
 	@Mock
 	private ContentDao contentDao;
 
-	@Mock
-	private ModelMapper modelMapper;
-
 	@Test
 	@DisplayName("작품 기본정보 조회 성공")
 	void getBasicInfoSuccess() {
 		Long contentId = 1L;
 		ContentVo mockVo = new ContentVo();
 		mockVo.setContentId(contentId);
+		mockVo.setContentType(com.project.scenepickbe.content.enums.ContentType.TV);
 		mockVo.setTitle("테스트 영화");
 		mockVo.setPosterImageUrl("poster");
 		mockVo.setSynopsis("테스트 줄거리");
 		mockVo.setGenreList(List.of(GenreType.ACTION, GenreType.ROMANCE));
 
 		when(contentDao.selectContentBasic(contentId)).thenReturn(mockVo);
-		when(modelMapper.map(mockVo, ContentResponse.Basic.class))
-			.thenReturn(new ContentResponse.Basic(contentId, "테스트 영화", "poster", "테스트 줄거리", List.of()));
+		when(contentDao.selectContentSeasons(contentId)).thenReturn(List.of());
 
 		ContentResponse.Basic result = contentQueryService.getBasicInfo(contentId);
 
 		assertThat(result).isNotNull();
 		assertThat(result.contentId()).isEqualTo(contentId);
 		assertThat(result.title()).isEqualTo("테스트 영화");
+		assertThat(result.defaultSeasonNo()).isEqualTo(1);
+		assertThat(result.seasonList()).isEmpty();
 		assertThat(result.genreList())
 			.hasSize(2)
 			.contains(GenreType.ACTION.name(), GenreType.ROMANCE.name());
 		verify(contentDao, times(1)).selectContentBasic(contentId);
-		verify(modelMapper, times(1)).map(mockVo, ContentResponse.Basic.class);
 	}
 
 	@Test
@@ -80,47 +77,42 @@ class ContentQueryServiceTest {
 
 	@Test
 	@DisplayName("작품 출연진 리스트 조회 성공")
-	void getPersons() {
+	void getCredits() {
 		Long contentId = 1L;
-		PersonVo mockVo1 = new PersonVo();
-		PersonVo mockVo2 = new PersonVo();
+		CreditVo mockVo1 = new CreditVo();
+		CreditVo mockVo2 = new CreditVo();
 
 		mockVo1.setContentId(contentId);
-		mockVo1.setPersonId(1L);
+		mockVo1.setCreditId(1L);
 		mockVo1.setName("배우A");
 		mockVo1.setCharName("배역A");
 
-		mockVo2.setPersonId(2L);
+		mockVo2.setCreditId(2L);
 		mockVo2.setContentId(contentId);
 		mockVo2.setName("배우B");
 		mockVo2.setCharName("배역B");
 
-		when(contentDao.selectContentPersons(contentId)).thenReturn(List.of(mockVo1, mockVo2));
-		when(modelMapper.map(mockVo1, ContentResponse.Person.class))
-			.thenReturn(new ContentResponse.Person(1L, "배우A", "배역A", null));
-		when(modelMapper.map(mockVo2, ContentResponse.Person.class))
-			.thenReturn(new ContentResponse.Person(2L, "배우B", "배역B", null));
+		when(contentDao.selectContentCredits(contentId)).thenReturn(List.of(mockVo1, mockVo2));
 
-		ContentResponse.PersonList expected = new ContentResponse.PersonList(List.of(
-			new ContentResponse.Person(1L, "배우A", "배역A", null),
-			new ContentResponse.Person(2L, "배우B", "배역B", null)
+		ContentResponse.CreditList expected = new ContentResponse.CreditList(List.of(
+			new ContentResponse.Credit(1L, "배우A", "배역A", null),
+			new ContentResponse.Credit(2L, "배우B", "배역B", null)
 		));
 
-		ContentResponse.PersonList result = contentQueryService.getPersons(contentId);
+		ContentResponse.CreditList result = contentQueryService.getCredits(contentId);
 
 		assertThat(result)
 			.usingRecursiveComparison()
 			.isEqualTo(expected);
 
-		verify(contentDao, times(1)).selectContentPersons(contentId);
-		verify(modelMapper, times(1)).map(mockVo1, ContentResponse.Person.class);
-		verify(modelMapper, times(1)).map(mockVo2, ContentResponse.Person.class);
+		verify(contentDao, times(1)).selectContentCredits(contentId);
 	}
 
 	@Test
 	@DisplayName("작품 에피소드 리스트 조회 성공")
 	void getEpisodes() {
 		Long contentId = 1L;
+		Integer seasonNo = 1;
 		EpisodeVo mockVo1 = new EpisodeVo();
 		EpisodeVo mockVo2 = new EpisodeVo();
 
@@ -134,25 +126,19 @@ class ContentQueryServiceTest {
 		mockVo2.setEpisodeNo(2);
 		mockVo2.setTitle("제목B");
 
-		when(contentDao.selectContentEpisodes(contentId)).thenReturn(List.of(mockVo1, mockVo2));
-		when(modelMapper.map(mockVo1, ContentResponse.Episode.class))
-			.thenReturn(new ContentResponse.Episode(1L, 1, "제목A", null, null));
-		when(modelMapper.map(mockVo2, ContentResponse.Episode.class))
-			.thenReturn(new ContentResponse.Episode(2L, 2, "제목B", null, null));
+		when(contentDao.selectSeasonEpisodes(contentId, seasonNo)).thenReturn(List.of(mockVo1, mockVo2));
 
 		ContentResponse.EpisodeList expected = new ContentResponse.EpisodeList(List.of(
 			new ContentResponse.Episode(1L, 1, "제목A", null, null),
 			new ContentResponse.Episode(2L, 2, "제목B", null, null)
 		));
 
-		ContentResponse.EpisodeList result = contentQueryService.getEpisodes(contentId);
+		ContentResponse.EpisodeList result = contentQueryService.getEpisodes(contentId, seasonNo);
 
 		assertThat(result)
 			.usingRecursiveComparison()
 			.isEqualTo(expected);
 
-		verify(contentDao, times(1)).selectContentEpisodes(contentId);
-		verify(modelMapper, times(1)).map(mockVo1, ContentResponse.Episode.class);
-		verify(modelMapper, times(1)).map(mockVo2, ContentResponse.Episode.class);
+		verify(contentDao, times(1)).selectSeasonEpisodes(contentId, seasonNo);
 	}
 }
