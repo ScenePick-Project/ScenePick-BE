@@ -1,12 +1,5 @@
 package com.project.scenepickbe.user.service;
 
-import java.util.List;
-
-import org.modelmapper.ModelMapper;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
 import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
@@ -18,10 +11,18 @@ import com.project.scenepickbe.user.dto.UserRequest;
 import com.project.scenepickbe.user.dto.UserResponse;
 import com.project.scenepickbe.user.enums.Role;
 import com.project.scenepickbe.user.vo.UserVo;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -148,5 +149,24 @@ public class UserCommandService {
 		} catch (Exception e) {
 			log.warn("로그아웃 처리 중 예외 발생: {}", e.getMessage());
 		}
+	}
+
+	/**
+	 * 토큰에 담긴 회원정보
+	 */
+	public UserResponse.UserAuth getUserAuth(Authentication authentication) {
+		String userId = authentication.getName();
+		String role = pickRole(authentication.getAuthorities());
+		return new UserResponse.UserAuth(userId, role);
+	}
+
+	/**
+	 * 대표 권한 선택 정책
+	 */
+	private String pickRole(Collection<? extends GrantedAuthority> authorities) {
+		return authorities.stream()
+			.map(GrantedAuthority::getAuthority) // "ROLE_ADMIN" 같은 값
+			.findFirst()
+			.orElse("ROLE_USER"); // 기본값
 	}
 }
