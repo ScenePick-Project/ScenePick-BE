@@ -1,28 +1,23 @@
 package com.project.scenepickbe.user.controller;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.project.scenepickbe.common.apiPayload.ApiResponse;
 import com.project.scenepickbe.common.jwt.CookieProvider;
 import com.project.scenepickbe.common.jwt.dto.JwtToken;
+import com.project.scenepickbe.common.swagger.DocSuccess;
 import com.project.scenepickbe.user.dto.UserRequest;
+import com.project.scenepickbe.user.dto.UserResponse;
 import com.project.scenepickbe.user.service.UserCommandService;
 import com.project.scenepickbe.user.service.UserQueryService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -35,6 +30,7 @@ public class UserController {
 	private final CookieProvider cookieProvider;
 
 	@Operation(summary = "회원가입", description = "회원가입을 합니다.")
+	@DocSuccess(UserResponse.UserSignUp.class)
 	@PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponse<?>> signup(@RequestBody @Valid UserRequest.UserSignUp requestDto) {
 		return ResponseEntity.ok(ApiResponse.onSuccess(userCommandService.signup(requestDto)));
@@ -95,5 +91,12 @@ public class UserController {
 			.header(HttpHeaders.SET_COOKIE, deleteAccess.toString())
 			.header(HttpHeaders.SET_COOKIE, deleteRefresh.toString())
 			.body(ApiResponse.onSuccess(null));
+	}
+
+	@Operation(summary = "로그인 여부 판단", description = "로그인이 되었는지 확인합니다.")
+	@DocSuccess(UserResponse.UserAuth.class)
+	@GetMapping("/me")
+	public ResponseEntity<ApiResponse<?>> me(Authentication authentication) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(userCommandService.getUserAuth(authentication)));
 	}
 }
