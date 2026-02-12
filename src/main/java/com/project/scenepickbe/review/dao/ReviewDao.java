@@ -1,8 +1,10 @@
 package com.project.scenepickbe.review.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.project.scenepickbe.review.vo.ReviewVo;
 
@@ -23,6 +25,14 @@ public interface ReviewDao {
 	 * 리뷰 목록 조회
 	 */
 	List<ReviewVo> selectReviewList(Long contentId);
+
+	/**
+	 * 리뷰 페이징 목록 조회
+	 */
+	List<ReviewVo> selectReviewCursor(@Param("contentId") Long contentId,
+		@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+		@Param("cursorReviewId") Long cursorReviewId,
+		@Param("limit") int limit);
 
 	/**
 	 * 리뷰 삭제

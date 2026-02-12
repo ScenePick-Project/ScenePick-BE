@@ -1,5 +1,6 @@
 package com.project.scenepickbe.review.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -48,6 +49,26 @@ public class ReviewResponse {
 	public record ReviewList(
 		@Schema(description = "리뷰 목록")
 		List<Review> reviewList
+	) {
+	}
+
+	@Schema(name = "ReviewCursor", description = "리뷰 커서")
+	public record Cursor(
+		@Schema(description = "마지막 리뷰 생성 시각")
+		LocalDateTime createdAt,
+		@Schema(description = "마지막 리뷰 ID")
+		Long reviewId
+	) {
+	}
+
+	@Schema(name = "SliceList", description = "리뷰 슬라이스 목록")
+	public record SliceList(
+		@Schema(description = "리뷰 목록")
+		List<Review> reviewList,
+		@Schema(description = "다음 페이지 커서")
+		Cursor nextCursor,
+		@Schema(description = "다음 페이지 존재 여부")
+		Boolean hasNext
 	) {
 	}
 }

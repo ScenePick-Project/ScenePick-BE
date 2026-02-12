@@ -25,4 +25,9 @@ public interface ReviewDtoMapper {
 		return new ReviewResponse.ReviewList(toReviewItems(reviewVoList));
 	}
 
+	default ReviewResponse.SliceList toSliceList(List<ReviewVo> reviewVoList,
+		ReviewResponse.Cursor nextCursor, boolean hasNext) {
+		return new ReviewResponse.SliceList(toReviewItems(reviewVoList), nextCursor, hasNext);
+	}
+
 }
