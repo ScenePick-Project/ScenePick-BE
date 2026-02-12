@@ -10,10 +10,10 @@
                 #{userId},
                 #{reviewBody},
                 #{isSpoiler},
-                #{trackId},
-                #{youtubeId},
-                #{startTime},
-                #{endTime},
+                #{trackId, jdbcType=VARCHAR},
+                #{youtubeId, jdbcType=VARCHAR},
+                #{startTime, jdbcType=NUMERIC},
+                #{endTime, jdbcType=NUMERIC},
                 SYSTIMESTAMP,
                 'N')
     </insert>
@@ -63,3 +63,4 @@
     </update>
 
 </mapper>
+
