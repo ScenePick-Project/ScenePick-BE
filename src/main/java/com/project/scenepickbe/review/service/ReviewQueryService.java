@@ -5,8 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
-import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
+import com.project.scenepickbe.common.paging.CursorPaging;
 import com.project.scenepickbe.review.dao.ReviewDao;
 import com.project.scenepickbe.review.dto.request.ReviewRequest;
 import com.project.scenepickbe.review.dto.response.ReviewResponse;
@@ -43,35 +42,16 @@ public class ReviewQueryService {
 	public ReviewResponse.SliceList getReviewList(Long contentId, ReviewRequest.Slice request) {
 		LocalDateTime cursorCreatedAt = request.cursorCreatedAt();
 		Long cursorReviewId = request.cursorReviewId();
-		if (request.cursorCreatedAt() == null && request.cursorReviewId() != null
-			|| request.cursorCreatedAt() != null && request.cursorReviewId() == null) {
-			throw new GeneralException(ErrorStatus.CURSOR_INVALID);
-		}
-		int pageSize = normalizeSize(request.size());
-		int limit = pageSize + 1;
+		CursorPaging.validateCursorPair(cursorCreatedAt, cursorReviewId);
+		int pageSize = CursorPaging.normalizeSize(request.size(), DEFAULT_SIZE, MAX_SIZE);
+		int limit = CursorPaging.resolveLimit(pageSize);
 
 		List<ReviewVo> reviewVoList = reviewDao.selectReviewCursor(contentId, cursorCreatedAt, cursorReviewId, limit);
-		boolean hasNext = reviewVoList.size() > pageSize;
-		if (hasNext) {
-			reviewVoList = reviewVoList.subList(0, pageSize);
-		}
-
-		ReviewResponse.Cursor nextCursor = null;
-		if (hasNext && !reviewVoList.isEmpty()) {
-			ReviewVo last = reviewVoList.get(reviewVoList.size() - 1);
-			nextCursor = new ReviewResponse.Cursor(last.getCreatedAt(), last.getReviewId());
-		}
-		return reviewDtoMapper.toSliceList(reviewVoList, nextCursor, hasNext);
-	}
-
-	/**
-	 * 페이지 크기 요청값을 검증하고 보정합니다.
-	 */
-	private int normalizeSize(Integer size) {
-		int resolvedSize = size == null ? DEFAULT_SIZE : size;
-		if (resolvedSize <= 0) {
-			throw new GeneralException(ErrorStatus.INVALID_PAGE_SIZE);
-		}
-		return Math.min(resolvedSize, MAX_SIZE);
+		CursorPaging.Slice<ReviewVo, ReviewResponse.Cursor> slice = CursorPaging.toSlice(
+			reviewVoList,
+			pageSize,
+			last -> new ReviewResponse.Cursor(last.getCreatedAt(), last.getReviewId())
+		);
+		return reviewDtoMapper.toSliceList(slice.items(), slice.nextCursor(), slice.hasNext());
 	}
 }
