@@ -36,7 +36,11 @@ public enum ErrorStatus implements BaseErrorCode {
 	CONTENT_IMPORT_FAIL(HttpStatus.NOT_FOUND, "CONTENT4002", "TMDB 작품 등록에 실패했습니다."),
 
 	// TMDB
-	TMDB_API_FAIL(HttpStatus.BAD_GATEWAY, "TMDB5001", "TMDB API 호출에 실패했습니다.");
+	TMDB_API_FAIL(HttpStatus.BAD_GATEWAY, "TMDB5001", "TMDB API 호출에 실패했습니다."),
+
+	// Paging
+	CURSOR_INVALID(HttpStatus.BAD_REQUEST, "PAGING4001", "커서 파라미터 구성이 올바르지 않습니다."),
+	INVALID_PAGE_SIZE(HttpStatus.BAD_REQUEST, "PAGING4002", "페이지 크기는 1보다 커야 합니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
