@@ -1,6 +1,7 @@
 package com.project.scenepickbe.user.vo;
 
 import com.project.scenepickbe.common.BaseVo;
+import com.project.scenepickbe.user.enums.AuthProvider;
 import com.project.scenepickbe.user.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +50,12 @@ public class UserVo extends BaseVo {
 
 	/* 탈퇴일 */
 	private String deleteAt;
+
+	/* OAuth 인증 제공자 */
+	private AuthProvider provider;
+
+	/* 인증 제공자로부터 받은 사용자 고유 식별자 */
+	private String providerId;
 
 	/* 검색 */
 	private Search search;
