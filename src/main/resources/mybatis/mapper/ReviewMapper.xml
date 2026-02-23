@@ -10,10 +10,10 @@
                 #{userId},
                 #{reviewBody},
                 #{isSpoiler},
-                #{trackId},
-                #{youtubeId},
-                #{startTime},
-                #{endTime},
+                #{trackId, jdbcType=VARCHAR},
+                #{youtubeId, jdbcType=VARCHAR},
+                #{startTime, jdbcType=NUMERIC},
+                #{endTime, jdbcType=NUMERIC},
                 SYSTIMESTAMP,
                 'N')
     </insert>
@@ -53,6 +53,29 @@
         ORDER BY R.CREATED_AT DESC
     </select>
 
+    <select id="selectReviewCursor" resultType="ReviewVo">
+        SELECT R.REVIEW_ID,
+               R.USER_ID,
+               R.CONTENT_ID,
+               R.REVIEW_BODY,
+               R.IS_SPOILER,
+               R.TRACK_ID,
+               R.YOUTUBE_ID,
+               R.START_TIME,
+               R.END_TIME,
+               R.CREATED_AT,
+               R.UPDATED_AT
+        FROM REVIEW R
+        WHERE R.CONTENT_ID = #{contentId}
+          AND R.DEL_YN = 'N'
+        <if test="cursorCreatedAt != null">
+            AND (R.CREATED_AT &lt; #{cursorCreatedAt}
+                 OR (R.CREATED_AT = #{cursorCreatedAt} AND R.REVIEW_ID &lt; #{cursorReviewId}))
+        </if>
+        ORDER BY R.CREATED_AT DESC, R.REVIEW_ID DESC
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
     <update id="deleteReview">
         UPDATE REVIEW
         SET DEL_YN     = 'Y',
@@ -63,3 +86,4 @@
     </update>
 
 </mapper>
+

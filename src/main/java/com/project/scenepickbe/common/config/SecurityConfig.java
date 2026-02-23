@@ -1,5 +1,8 @@
 package com.project.scenepickbe.common.config;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.project.scenepickbe.common.jwt.JwtAuthenticationEntryPoint;
 import com.project.scenepickbe.common.jwt.JwtAuthenticationFilter;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
@@ -18,8 +21,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.Collections;
-import java.util.List;
+import com.project.scenepickbe.common.jwt.JwtAuthenticationEntryPoint;
+import com.project.scenepickbe.common.jwt.JwtAuthenticationFilter;
+import com.project.scenepickbe.common.jwt.JwtTokenProvider;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -52,10 +58,7 @@ public class SecurityConfig {
 					.requestMatchers(
 						"/api/v1/user/signup",
 						"/api/v1/user/refresh",
-						"/api/v1/user/login",
-						"/api/v1/contents/{contentId}",
-						"/api/v1/contents/{contentId}/persons",
-						"/api/v1/contents/{contentId}/episodes"
+						"/api/v1/user/login"
 					)
 					.permitAll()
 					// Swagger 경로 접근
