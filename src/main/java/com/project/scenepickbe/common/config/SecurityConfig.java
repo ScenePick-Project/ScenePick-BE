@@ -3,6 +3,9 @@ package com.project.scenepickbe.common.config;
 import com.project.scenepickbe.common.jwt.JwtAuthenticationEntryPoint;
 import com.project.scenepickbe.common.jwt.JwtAuthenticationFilter;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
+import com.project.scenepickbe.common.security.oauth.CustomerOauth2UserService;
+import com.project.scenepickbe.common.security.oauth.OAuth2SuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +25,9 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+	private final CustomerOauth2UserService customerOauth2UserService;
+	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(
@@ -57,6 +63,21 @@ public class SecurityConfig {
 					.permitAll()
 					.anyRequest()
 					.authenticated()
+			)
+
+			// CustomerOauth2UserService 등록
+			.oauth2Login(oauth2 -> oauth2
+				.userInfoEndpoint(userInfo -> userInfo
+					.userService(customerOauth2UserService)
+				)
+				.successHandler(oAuth2SuccessHandler)
+			)
+			// 로그아웃
+			.logout(logout -> logout
+				.logoutUrl("/api/v1/user/logout")
+				.logoutSuccessHandler((request, response, authentication) -> {
+					response.setStatus(HttpServletResponse.SC_OK); // 성공 시 200 OK만 반환
+				})
 			)
 
 			// JWT 쿠키 필터 추가
