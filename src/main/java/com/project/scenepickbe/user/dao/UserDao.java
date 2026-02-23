@@ -18,4 +18,7 @@ public interface UserDao {
 
 	// 회원 로그인 정보 조회
 	UserVo selectUser(@Param("loginId") String loginId);
+
+	// 소셜 정보로 사용자 조회
+	UserVo selectUserByProvider(@Param("provider") String provider, @Param("providerId") String providerId);
 }
