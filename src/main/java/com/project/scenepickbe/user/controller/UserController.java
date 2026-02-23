@@ -60,7 +60,7 @@ public class UserController {
 		return ResponseEntity.ok()
 			.header(HttpHeaders.SET_COOKIE, accessCookie.toString())
 			.header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-			.body(ApiResponse.onSuccess(null));
+			.body(ApiResponse.onSuccess(token));
 	}
 
 	@Operation(summary = "토큰 재발급", description = "refresh_token 쿠키로 access/refresh 토큰을 재발급합니다.")
