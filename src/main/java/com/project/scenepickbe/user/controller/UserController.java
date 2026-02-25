@@ -97,6 +97,8 @@ public class UserController {
 	@DocSuccess(UserResponse.UserAuth.class)
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<?>> me(Authentication authentication) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(userCommandService.getUserAuth(authentication)));
+		UserResponse.UserAuth userAuth = userCommandService.getUserAuth(authentication);
+
+		return ResponseEntity.ok(ApiResponse.onSuccess(userAuth));
 	}
 }
