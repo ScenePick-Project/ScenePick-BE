@@ -155,6 +155,13 @@ public class UserCommandService {
 	 * 토큰에 담긴 회원정보
 	 */
 	public UserResponse.UserAuth getUserAuth(Authentication authentication) {
+		// 인증 정보가 없거나 로그인하지 않은 익명 사용자일 경우 예외 처리
+		if (authentication == null || !authentication.isAuthenticated()
+			|| "anonymousUser".equals(authentication.getName())) {
+			return null;
+		}
+
+		// 인증 정보가 확실히 있을 때만 정보 추출
 		String userId = authentication.getName();
 		String role = pickRole(authentication.getAuthorities());
 		return new UserResponse.UserAuth(userId, role);

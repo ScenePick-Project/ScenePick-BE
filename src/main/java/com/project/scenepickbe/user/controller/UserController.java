@@ -60,7 +60,7 @@ public class UserController {
 		return ResponseEntity.ok()
 			.header(HttpHeaders.SET_COOKIE, accessCookie.toString())
 			.header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-			.body(ApiResponse.onSuccess(null));
+			.body(ApiResponse.onSuccess(token));
 	}
 
 	@Operation(summary = "토큰 재발급", description = "refresh_token 쿠키로 access/refresh 토큰을 재발급합니다.")
@@ -97,6 +97,8 @@ public class UserController {
 	@DocSuccess(UserResponse.UserAuth.class)
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<?>> me(Authentication authentication) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(userCommandService.getUserAuth(authentication)));
+		UserResponse.UserAuth userAuth = userCommandService.getUserAuth(authentication);
+
+		return ResponseEntity.ok(ApiResponse.onSuccess(userAuth));
 	}
 }
