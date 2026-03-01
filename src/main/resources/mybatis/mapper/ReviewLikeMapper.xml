@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.scenepickbe.review.dao.ReviewLikeDao">
+
+    <!-- 리뷰 좋아요 추가 -->
+    <insert id="insertReviewLike" useGeneratedKeys="true" keyProperty="reviewLikeId" keyColumn="REVIEW_LIKE_ID">
+        INSERT INTO REVIEW_LIKE (USER_ID, REVIEW_ID, CREATED_AT)
+        VALUES (#{userId}, #{reviewId}, SYSTIMESTAMP)
+    </insert>
+
+    <!-- 리뷰 좋아요 삭제 -->
+    <delete id="deleteReviewLike">
+        DELETE FROM REVIEW_LIKE
+        WHERE USER_ID = #{userId}
+          AND REVIEW_ID = #{reviewId}
+    </delete>
+
+    <!-- 리뷰 좋아요 여부 확인 -->
+    <select id="existsReviewLike" resultType="int">
+        SELECT COUNT(*)
+        FROM REVIEW_LIKE
+        WHERE USER_ID = #{userId}
+          AND REVIEW_ID = #{reviewId}
+    </select>
+
+    <!-- 리뷰별 좋아요 수 조회 -->
+    <select id="countReviewLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM REVIEW_LIKE
+        WHERE REVIEW_ID = #{reviewId}
+    </select>
+
+    <!-- 리뷰 좋아요 정보 조회 -->
+    <select id="selectReviewLike" resultType="ReviewLikeVo">
+        SELECT REVIEW_LIKE_ID,
+               USER_ID,
+               REVIEW_ID,
+               CREATED_AT,
+               UPDATED_AT
+        FROM REVIEW_LIKE
+        WHERE USER_ID = #{userId}
+          AND REVIEW_ID = #{reviewId}
+    </select>
+
+</mapper>
