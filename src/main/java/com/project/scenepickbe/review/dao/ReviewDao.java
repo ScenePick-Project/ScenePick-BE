@@ -38,4 +38,13 @@ public interface ReviewDao {
 	 * 리뷰 삭제
 	 */
 	int deleteReview(Long reviewId, String userId);
+
+	/**
+	 * 리뷰 페이징 목록 조회 (인기순 정렬)
+	 */
+	List<ReviewVo> selectReviewCursorByPopularity(@Param("contentId") Long contentId,
+		@Param("cursorLikeCount") Integer cursorLikeCount,
+		@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+		@Param("cursorReviewId") Long cursorReviewId,
+		@Param("limit") int limit);
 }

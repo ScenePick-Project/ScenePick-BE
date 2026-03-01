@@ -35,16 +35,22 @@ public class ReviewController {
 	@Operation(summary = "특정 리뷰 단건 조회", description = "리뷰 하나를 조회합니다.")
 	@DocSuccess(ReviewResponse.Review.class)
 	@GetMapping("/reviews/{reviewId}")
-	public ResponseEntity<ApiResponse<?>> getReview(@PathVariable Long reviewId) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(reviewQueryService.getReview(reviewId)));
+	public ResponseEntity<ApiResponse<?>> getReview(
+		@PathVariable Long reviewId,
+		@AuthenticationPrincipal(errorOnInvalidType = false) User user) {
+		String userId = user != null ? user.getUsername() : null;
+		return ResponseEntity.ok(ApiResponse.onSuccess(reviewQueryService.getReview(reviewId, userId)));
 	}
 
 	@Operation(summary = "특정 작품 리뷰목록 조회", description = "리뷰 목록을 조회합니다.")
 	@DocSuccess(ReviewResponse.SliceList.class)
 	@GetMapping("/contents/{contentId}/reviews")
 	public ResponseEntity<ApiResponse<?>> getReviewList(
-		@PathVariable Long contentId, @Valid @ParameterObject ReviewRequest.Slice request) {
-		return ResponseEntity.ok(ApiResponse.onSuccess(reviewQueryService.getReviewList(contentId, request)));
+		@PathVariable Long contentId,
+		@AuthenticationPrincipal(errorOnInvalidType = false) User user,
+		@Valid @ParameterObject ReviewRequest.Slice request) {
+		String userId = user != null ? user.getUsername() : null;
+		return ResponseEntity.ok(ApiResponse.onSuccess(reviewQueryService.getReviewList(contentId, userId, request)));
 	}
 
 	@Operation(summary = "작품 리뷰 작성", description = "특정 작품의 리뷰를 등록합니다.")
