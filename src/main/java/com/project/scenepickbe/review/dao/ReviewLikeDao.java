@@ -1,5 +1,9 @@
 package com.project.scenepickbe.review.dao;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -45,5 +49,21 @@ public interface ReviewLikeDao {
 	 * @return 리뷰 좋아요 정보
 	 */
 	ReviewLikeVo selectReviewLike(@Param("userId") String userId, @Param("reviewId") Long reviewId);
+
+	/**
+	 * 여러 리뷰의 좋아요 수를 일괄 조회
+	 * @param reviewIds 리뷰 ID 목록
+	 * @return Map<reviewId, Map<column, value>>
+	 */
+	@MapKey("REVIEW_ID")
+	Map<Long, Map<String, Object>> countReviewLikesBatch(@Param("reviewIds") List<Long> reviewIds);
+
+	/**
+	 * 특정 사용자가 여러 리뷰에 좋아요를 눌렀는지 일괄 조회
+	 * @param userId 유저 ID
+	 * @param reviewIds 리뷰 ID 목록
+	 * @return 좋아요를 누른 리뷰 ID 목록
+	 */
+	List<Long> selectUserLikedReviewIds(@Param("userId") String userId, @Param("reviewIds") List<Long> reviewIds);
 
 }

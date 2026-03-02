@@ -1,7 +1,12 @@
 package com.project.scenepickbe.review.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -63,9 +68,7 @@ public class ReviewQueryService {
 			reviewVoList = reviewDao.selectReviewCursor(contentId, cursorCreatedAt, cursorReviewId, limit);
 		}
 
-		List<ReviewResponse.Review> enrichedReviews = reviewVoList.stream()
-			.map(vo -> enrichReviewWithLikeData(vo, currentUserId))
-			.toList();
+		List<ReviewResponse.Review> enrichedReviews = enrichReviewsWithLikeDataBatch(reviewVoList, currentUserId);
 
 		CursorPaging.Slice<ReviewResponse.Review, ReviewResponse.Cursor> slice = CursorPaging.toSlice(
 			enrichedReviews,
@@ -120,5 +123,60 @@ public class ReviewQueryService {
 			isLikedByCurrentUser,
 			reviewVo.getCreatedAt()
 		);
+	}
+
+	/**
+	 * 여러 리뷰에 좋아요 데이터를 일괄 추가합니다.
+	 *
+	 * @param reviewVoList 리뷰 VO 목록
+	 * @param currentUserId 현재 사용자 ID (비로그인 시 null)
+	 * @return 좋아요 데이터가 추가된 리뷰 응답 DTO 목록
+	 */
+	private List<ReviewResponse.Review> enrichReviewsWithLikeDataBatch(List<ReviewVo> reviewVoList,
+		String currentUserId) {
+		if (reviewVoList.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		List<Long> reviewIds = reviewVoList.stream()
+			.map(ReviewVo::getReviewId)
+			.toList();
+
+		Map<Long, Map<String, Object>> batchResult = reviewLikeDao.countReviewLikesBatch(reviewIds);
+		Map<Long, Integer> likeCountMap = batchResult.entrySet().stream()
+			.collect(Collectors.toMap(
+				Map.Entry::getKey,
+				entry -> ((BigDecimal)entry.getValue().get("LIKE_COUNT")).intValue()
+			));
+
+		Set<Long> likedReviewIds = Collections.emptySet();
+		if (currentUserId != null) {
+			likedReviewIds = reviewLikeDao.selectUserLikedReviewIds(currentUserId, reviewIds).stream()
+				.collect(Collectors.toSet());
+		}
+
+		Set<Long> finalLikedReviewIds = likedReviewIds;
+		return reviewVoList.stream()
+			.map(vo -> {
+				int likeCount = likeCountMap.getOrDefault(vo.getReviewId(), 0);
+				Boolean isLikedByCurrentUser = currentUserId != null ? finalLikedReviewIds.contains(
+					vo.getReviewId()) : null;
+
+				return new ReviewResponse.Review(
+					vo.getReviewId(),
+					vo.getContentId(),
+					vo.getUserId(),
+					vo.getReviewBody(),
+					vo.getStartTime(),
+					vo.getEndTime(),
+					vo.getYoutubeId(),
+					vo.getIsSpoiler(),
+					vo.getTrackId(),
+					likeCount,
+					isLikedByCurrentUser,
+					vo.getCreatedAt()
+				);
+			})
+			.toList();
 	}
 }
