@@ -68,6 +68,10 @@ public class ReviewQueryService {
 			reviewVoList = reviewDao.selectReviewCursor(contentId, cursorCreatedAt, cursorReviewId, limit);
 		}
 
+		if (reviewVoList.isEmpty()) {
+			return new ReviewResponse.SliceList(Collections.emptyList(), null, false);
+		}
+
 		List<ReviewResponse.Review> enrichedReviews = enrichReviewsWithLikeDataBatch(reviewVoList, currentUserId);
 
 		CursorPaging.Slice<ReviewResponse.Review, ReviewResponse.Cursor> slice = CursorPaging.toSlice(
