@@ -41,7 +41,16 @@ public class ReviewResponse {
 		Boolean isSpoiler,
 
 		@Schema(description = "리뷰 트랙 ID")
-		String trackId
+		String trackId,
+
+		@Schema(description = "리뷰 좋아요 수")
+		Integer likeCount,
+
+		@Schema(description = "현재 사용자의 좋아요 여부")
+		Boolean isLikedByCurrentUser,
+
+		@Schema(description = "리뷰 생성 시각")
+		LocalDateTime createdAt
 	) {
 	}
 
@@ -57,7 +66,9 @@ public class ReviewResponse {
 		@Schema(description = "마지막 리뷰 생성 시각")
 		LocalDateTime createdAt,
 		@Schema(description = "마지막 리뷰 ID")
-		Long reviewId
+		Long reviewId,
+		@Schema(description = "마지막 리뷰 좋아요 수 (POPULAR 정렬 시 사용)")
+		Integer likeCount
 	) {
 	}
 

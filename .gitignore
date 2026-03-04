@@ -4,6 +4,9 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.kiro
+.aidlc-rule-details
+aidlc-docs
 
 ### STS ###
 .apt_generated

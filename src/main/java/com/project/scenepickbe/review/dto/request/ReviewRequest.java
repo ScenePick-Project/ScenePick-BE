@@ -43,12 +43,18 @@ public class ReviewRequest {
 		@Positive
 		Integer size,
 
+		@Schema(description = "정렬 방식", defaultValue = "LATEST", allowableValues = {"LATEST", "POPULAR"})
+		String sortBy,
+
 		@Schema(description = "이전 페이지의 마지막 리뷰 생성 시각", example = "2026-02-12T10:20:30")
 		@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
 		LocalDateTime cursorCreatedAt,
 
 		@Schema(description = "이전 페이지의 마지막 리뷰 ID", example = "12")
-		Long cursorReviewId
+		Long cursorReviewId,
+
+		@Schema(description = "이전 페이지의 마지막 리뷰 좋아요 수 (POPULAR 정렬 시 필요)")
+		Integer cursorLikeCount
 	) {
 	}
 }

@@ -55,22 +55,22 @@
 
     <select id="selectReviewCursor" resultType="ReviewVo">
         SELECT R.REVIEW_ID,
-               R.USER_ID,
-               R.CONTENT_ID,
-               R.REVIEW_BODY,
-               R.IS_SPOILER,
-               R.TRACK_ID,
-               R.YOUTUBE_ID,
-               R.START_TIME,
-               R.END_TIME,
-               R.CREATED_AT,
-               R.UPDATED_AT
+        R.USER_ID,
+        R.CONTENT_ID,
+        R.REVIEW_BODY,
+        R.IS_SPOILER,
+        R.TRACK_ID,
+        R.YOUTUBE_ID,
+        R.START_TIME,
+        R.END_TIME,
+        R.CREATED_AT,
+        R.UPDATED_AT
         FROM REVIEW R
         WHERE R.CONTENT_ID = #{contentId}
-          AND R.DEL_YN = 'N'
+        AND R.DEL_YN = 'N'
         <if test="cursorCreatedAt != null">
             AND (R.CREATED_AT &lt; #{cursorCreatedAt}
-                 OR (R.CREATED_AT = #{cursorCreatedAt} AND R.REVIEW_ID &lt; #{cursorReviewId}))
+            OR (R.CREATED_AT = #{cursorCreatedAt} AND R.REVIEW_ID &lt; #{cursorReviewId}))
         </if>
         ORDER BY R.CREATED_AT DESC, R.REVIEW_ID DESC
         FETCH NEXT #{limit} ROWS ONLY
@@ -84,6 +84,39 @@
           AND USER_ID = #{param2}
           AND DEL_YN = 'N'
     </update>
+
+    <select id="selectReviewCursorByPopularity" resultType="ReviewVo">
+        SELECT * FROM (
+        SELECT R.REVIEW_ID,
+        R.USER_ID,
+        R.CONTENT_ID,
+        R.REVIEW_BODY,
+        R.IS_SPOILER,
+        R.TRACK_ID,
+        R.YOUTUBE_ID,
+        R.START_TIME,
+        R.END_TIME,
+        R.CREATED_AT,
+        R.UPDATED_AT,
+        (SELECT COUNT(*)
+        FROM REVIEW_LIKE RL
+        WHERE RL.REVIEW_ID = R.REVIEW_ID) as LIKE_COUNT
+        FROM REVIEW R
+        WHERE R.CONTENT_ID = #{contentId}
+        AND R.DEL_YN = 'N'
+        )
+        WHERE 1=1
+        <if test="cursorLikeCount != null">
+            AND (
+            LIKE_COUNT &lt; #{cursorLikeCount}
+            OR (LIKE_COUNT = #{cursorLikeCount} AND CREATED_AT &lt; #{cursorCreatedAt})
+            OR (LIKE_COUNT = #{cursorLikeCount} AND CREATED_AT = #{cursorCreatedAt} AND REVIEW_ID &lt;
+            #{cursorReviewId})
+            )
+        </if>
+        ORDER BY LIKE_COUNT DESC, CREATED_AT DESC, REVIEW_ID DESC
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
 
 </mapper>
 
