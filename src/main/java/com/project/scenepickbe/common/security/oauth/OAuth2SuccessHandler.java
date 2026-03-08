@@ -30,7 +30,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
 		// 고유값 추출
-		String userId = oAuth2User.getAttribute("sub");
+		Object idObj;
+		if (oAuth2User.getAttributes().containsKey("sub")) {
+			idObj = oAuth2User.getAttribute("sub"); // 구글
+		} else {
+			idObj = oAuth2User.getAttribute("id"); // 카카오는 id가 Long 타입이므로 String으로 변환
+		}
+		String userId = String.valueOf(idObj);
 
 		// JwtTokenProvider로 우리 서비스 전용 토큰 발급
 		JwtToken jwtToken = jwtTokenProvider.generateToken(userId, authentication.getAuthorities());
