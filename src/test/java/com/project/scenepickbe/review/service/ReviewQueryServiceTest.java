@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +71,7 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursor(any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(anyLong())).thenReturn(0);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(Map.of());
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -100,7 +103,7 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursor(any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(anyLong())).thenReturn(0);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(Map.of());
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -123,7 +126,7 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursor(any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(anyLong())).thenReturn(0);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(Map.of());
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -148,9 +151,9 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursorByPopularity(any(), any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(1L)).thenReturn(10);
-		when(reviewLikeDao.countReviewLikes(2L)).thenReturn(5);
-		when(reviewLikeDao.countReviewLikes(3L)).thenReturn(3);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(batchLikeCounts(
+			Map.of(1L, 10, 2L, 5, 3L, 3)
+		));
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -176,10 +179,9 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursorByPopularity(any(), any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(1L)).thenReturn(10);
-		when(reviewLikeDao.countReviewLikes(2L)).thenReturn(5);
-		when(reviewLikeDao.countReviewLikes(3L)).thenReturn(3);
-		when(reviewLikeDao.countReviewLikes(4L)).thenReturn(2);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(batchLikeCounts(
+			Map.of(1L, 10, 2L, 5, 3L, 3, 4L, 2)
+		));
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -205,7 +207,9 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursorByPopularity(any(), any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(anyLong())).thenReturn(2);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(batchLikeCounts(
+			Map.of(5L, 2, 6L, 2)
+		));
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -229,8 +233,9 @@ class ReviewQueryServiceTest {
 		);
 
 		when(reviewDao.selectReviewCursor(any(), any(), any(), eq(4))).thenReturn(mockVoList);
-		when(reviewLikeDao.countReviewLikes(1L)).thenReturn(15);
-		when(reviewLikeDao.countReviewLikes(2L)).thenReturn(7);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(batchLikeCounts(
+			Map.of(1L, 15, 2L, 7)
+		));
 
 		ReviewResponse.SliceList result = reviewQueryService.getReviewList(contentId, null, request);
 
@@ -239,7 +244,8 @@ class ReviewQueryServiceTest {
 		assertThat(result.reviewList().get(1).likeCount()).isEqualTo(7);
 		assertThat(result.reviewList().get(0).createdAt()).isEqualTo(createdAt1);
 		assertThat(result.reviewList().get(1).createdAt()).isEqualTo(createdAt2);
-		verify(reviewLikeDao, times(2)).countReviewLikes(anyLong());
+		verify(reviewLikeDao).countReviewLikesBatch(List.of(1L, 2L));
+		verify(reviewLikeDao, never()).countReviewLikes(anyLong());
 	}
 
 	private ReviewVo reviewVo(Long reviewId, LocalDateTime createdAt) {
@@ -247,6 +253,14 @@ class ReviewQueryServiceTest {
 		vo.setReviewId(reviewId);
 		vo.setCreatedAt(createdAt);
 		return vo;
+	}
+
+	private Map<Long, Map<String, Object>> batchLikeCounts(Map<Long, Integer> likeCounts) {
+		Map<Long, Map<String, Object>> result = new HashMap<>();
+		likeCounts.forEach((reviewId, count) ->
+			result.put(reviewId, Map.of("LIKE_COUNT", BigDecimal.valueOf(count)))
+		);
+		return result;
 	}
 }
 
