@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
@@ -68,6 +69,7 @@ public class OpenApiDocCustomizerConfig {
 
 	@Bean
 	public OpenApiCustomizer docSuccessOpenApiCustomiser(
+		@Qualifier("requestMappingHandlerMapping")
 		ObjectProvider<org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping> handlerMappingProvider) {
 		return openApi -> {
 			org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping handlerMapping =
