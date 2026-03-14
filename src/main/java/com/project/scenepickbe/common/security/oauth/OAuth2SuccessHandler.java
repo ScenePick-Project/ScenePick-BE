@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +32,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
 		// 고유값 추출
 		Object idObj;
-		if (oAuth2User.getAttributes().containsKey("sub")) {
+		if (oAuth2User.getAttributes().containsKey("response")) {
+			// 네이버
+			Map<String, Object> naverResponse = (Map<String, Object>) oAuth2User.getAttribute("response");
+			idObj = naverResponse.get("id");
+		} else if (oAuth2User.getAttributes().containsKey("sub")) {
 			idObj = oAuth2User.getAttribute("sub"); // 구글
 		} else {
 			idObj = oAuth2User.getAttribute("id"); // 카카오는 id가 Long 타입이므로 String으로 변환

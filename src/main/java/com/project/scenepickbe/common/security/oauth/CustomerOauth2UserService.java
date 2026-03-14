@@ -27,7 +27,7 @@ public class CustomerOauth2UserService extends DefaultOAuth2UserService {
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
 		// 고유 식별값과 이메일 추출
-		String providerId;
+		String providerId = null;
 		String email = null;
 		String name = null;
 
@@ -48,6 +48,16 @@ public class CustomerOauth2UserService extends DefaultOAuth2UserService {
 				} else {
 					name = "KakaoUser";
 				}
+			}
+		} else if ("naver".equals(registrationId)) {
+			// 네이버는 response 안에 정보가 들어 있음
+			Map<String, Object> response = (Map<String, Object>) oAuth2USer.getAttribute("response");
+
+			if (response != null) {
+				Object naverId = response.get("id");
+				providerId = String.valueOf(naverId);
+				email = (String) response.get("email");
+				name = (String) response.get("nickname");
 			}
 		} else {
 			// 구글 및 기본 설정

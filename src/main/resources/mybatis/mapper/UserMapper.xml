@@ -5,19 +5,19 @@
     <!--회원가입-->
     <insert id="insertUser">
         INSERT INTO USERS (USER_ID, EMAIL, USERNAME, PASSWORD, ROLE, PROVIDER, PROVIDER_ID, CREATED_AT)
-        VALUES (#{vo.userId}, #{vo.email}, #{vo.username}, #{vo.password, jdbcType=VARCHAR},
-                #{vo.role, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-                #{vo.provider, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR},
-                #{vo.providerId, jdbcType=VARCHAR},
-                SYSTIMESTAMP)
+        VALUES (#{vo.userId}, #{vo.email}, #{vo.username, jdbcType=VARCHAR}, #{vo.password, jdbcType=VARCHAR},
+        #{vo.role, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+        #{vo.provider, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR},
+        #{vo.providerId, jdbcType=VARCHAR},
+        SYSTIMESTAMP)
     </insert>
 
     <!--아이디 중복 확인-->
     <select id="existsByUserId" resultType="boolean">
         SELECT CASE
-                   WHEN COUNT(*) > 0
-                       THEN 1
-                   ELSE 0 END
+        WHEN COUNT(*) > 0
+        THEN 1
+        ELSE 0 END
         FROM USERS
         WHERE USER_ID = #{userId}
     </select>
@@ -25,9 +25,9 @@
     <!--이메일 중복 확인-->
     <select id="existsByEmail" resultType="boolean">
         SELECT CASE
-                   WHEN COUNT(*) > 0
-                       THEN 1
-                   ELSE 0 END
+        WHEN COUNT(*) > 0
+        THEN 1
+        ELSE 0 END
         FROM USERS
         WHERE EMAIL = #{email}
     </select>
@@ -35,25 +35,25 @@
     <!--회원 로그인 정보 조회-->
     <select id="selectUser" resultType="UserVo">
         SELECT USER_ID
-             , EMAIL
-             , PASSWORD
-             , ROLE
+        , EMAIL
+        , PASSWORD
+        , ROLE
         FROM USERS
         WHERE (USER_ID = #{loginId} OR EMAIL = #{loginId})
-          AND DEL_YN = 'N'
+        AND DEL_YN = 'N'
     </select>
 
     <!--OAuth 계정 확인-->
     <select id="selectUserByProvider" resultType="UserVo">
         SELECT USER_ID
-             , USERNAME
-             , EMAIL
-             , ROLE
-             , PROVIDER
-             , PROVIDER_ID
+        , USERNAME
+        , EMAIL
+        , ROLE
+        , PROVIDER
+        , PROVIDER_ID
         FROM USERS
         WHERE PROVIDER = #{provider}
-          AND PROVIDER_ID = #{providerId}
+        AND PROVIDER_ID = #{providerId}
     </select>
 </mapper>
 
