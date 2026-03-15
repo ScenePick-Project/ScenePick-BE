@@ -99,3 +99,12 @@ tmdb:
 springdoc:
   swagger-ui:
     withCredentials: true
+
+server:
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

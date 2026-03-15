@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - test
+      - dev
+      - main
 
 env:
   DOCKER_IMAGE: soooii/scenepick-backend
