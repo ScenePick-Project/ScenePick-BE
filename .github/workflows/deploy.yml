@@ -9,6 +9,7 @@ on:
 
 env:
   DOCKER_IMAGE: soooii/scenepick-backend
+  IMAGE_TAG: ${{ github.sha }}
   K8S_DIR: k8s
 
 jobs:
@@ -48,7 +49,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:dev
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
           platforms: linux/amd64,linux/arm64
 
       - name: Configure SSH
@@ -81,6 +84,7 @@ jobs:
           rm -rf ~/k8s
           mkdir -p ~/k8s
           tar -xzf ~/k8s.tar.gz -C ~
+          sed -i "s|${{ env.DOCKER_IMAGE }}:placeholder|${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}|g" ~/k8s/deployment.yaml
           kubectl apply -f - <<'SECRET'
           apiVersion: v1
           kind: Secret
