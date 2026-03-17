@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
@@ -25,8 +26,10 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
+@Slf4j
 public class OpenApiDocCustomizerConfig {
 
 	@Bean
@@ -37,15 +40,16 @@ public class OpenApiDocCustomizerConfig {
 				return operation;
 			}
 
-			Schema<?> resultSchema = ModelConverters.getInstance()
-				.resolveAsResolvedSchema(new AnnotatedType(docSuccess.value()).resolveAsRef(true))
-				.schema;
+			ResolvedSchema resolvedSchema = resolveDocSuccessSchema(docSuccess.value(), handlerMethod);
+			if (resolvedSchema == null || resolvedSchema.schema == null) {
+				return operation;
+			}
 
 			Schema<?> wrapperSchema = new ObjectSchema()
 				.addProperty("isSuccess", new BooleanSchema().example(true))
 				.addProperty("code", new StringSchema().example("COMMON200"))
 				.addProperty("message", new StringSchema().example("Success"))
-				.addProperty("result", resultSchema);
+				.addProperty("result", resolvedSchema.schema);
 
 			MediaType mediaType = new MediaType().schema(wrapperSchema);
 			Content content = new Content().addMediaType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
@@ -65,6 +69,7 @@ public class OpenApiDocCustomizerConfig {
 
 	@Bean
 	public OpenApiCustomizer docSuccessOpenApiCustomiser(
+		@Qualifier("requestMappingHandlerMapping")
 		ObjectProvider<org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping> handlerMappingProvider) {
 		return openApi -> {
 			org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping handlerMapping =
@@ -92,8 +97,10 @@ public class OpenApiDocCustomizerConfig {
 					return;
 				}
 
-				ResolvedSchema resolved = ModelConverters.getInstance()
-					.resolveAsResolvedSchema(new AnnotatedType(docSuccess.value()).resolveAsRef(true));
+				ResolvedSchema resolved = resolveDocSuccessSchema(docSuccess.value(), handlerMethod);
+				if (resolved == null) {
+					return;
+				}
 
 				if (resolved.referencedSchemas != null) {
 					resolved.referencedSchemas.forEach(schemas::putIfAbsent);
@@ -105,5 +112,19 @@ public class OpenApiDocCustomizerConfig {
 				}
 			});
 		};
+	}
+
+	private ResolvedSchema resolveDocSuccessSchema(Class<?> schemaClass, HandlerMethod handlerMethod) {
+		try {
+			return ModelConverters.getInstance()
+				.resolveAsResolvedSchema(new AnnotatedType(schemaClass).resolveAsRef(true));
+		} catch (RuntimeException ex) {
+			log.warn("Failed to generate OpenAPI schema for {} on {}.{}",
+				schemaClass.getName(),
+				handlerMethod.getBeanType().getSimpleName(),
+				handlerMethod.getMethod().getName(),
+				ex);
+			return null;
+		}
 	}
 }
