@@ -40,7 +40,7 @@ public class SecurityConfig {
 			.csrf(csrf -> csrf.disable())
 			.cors(cors -> cors.configurationSource(request -> {
 				CorsConfiguration corsConfiguration = new CorsConfiguration();
-				corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
+				corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173", "https://scenepick.co.kr"));
 				corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 				corsConfiguration.setAllowCredentials(true);
 				corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
