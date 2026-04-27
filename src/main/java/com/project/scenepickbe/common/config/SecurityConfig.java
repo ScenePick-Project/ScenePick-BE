@@ -41,7 +41,7 @@ public class SecurityConfig {
 			.cors(cors -> cors.configurationSource(request -> {
 				CorsConfiguration corsConfiguration = new CorsConfiguration();
 				corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173", "https://scenepick.co.kr"));
-				corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+				corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 				corsConfiguration.setAllowCredentials(true);
 				corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
 				return corsConfiguration;
