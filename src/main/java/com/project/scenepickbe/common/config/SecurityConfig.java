@@ -73,6 +73,7 @@ public class SecurityConfig {
 			// 로그아웃
 			.logout(logout -> logout
 				.logoutUrl("/api/v1/user/logout")
+				.deleteCookies("access_token", "refresh_token")
 				.logoutSuccessHandler((request, response, authentication) -> {
 					response.setStatus(HttpServletResponse.SC_OK); // 성공 시 200 OK만 반환
 				})
