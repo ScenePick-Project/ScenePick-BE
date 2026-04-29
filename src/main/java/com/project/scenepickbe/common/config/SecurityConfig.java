@@ -53,7 +53,8 @@ public class SecurityConfig {
 						"/api/v1/user/signup",
 						"/api/v1/user/refresh",
 						"/api/v1/user/login",
-						"/api/v1/user/me"
+						"/api/v1/user/me",
+						"/actuator/health"
 					)
 					.permitAll()
 					// Swagger 경로 접근
