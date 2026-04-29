@@ -73,6 +73,8 @@ jobs:
             IdentityFile ~/.ssh/scenepick.key
             ProxyJump bastion
             StrictHostKeyChecking no
+            ServerAliveInterval 30
+            ServerAliveCountMax 20
           EOF
 
       - name: Deploy manifests to k3s
