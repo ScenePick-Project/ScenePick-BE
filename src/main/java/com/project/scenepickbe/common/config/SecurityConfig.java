@@ -41,7 +41,7 @@ public class SecurityConfig {
 			.cors(cors -> cors.configurationSource(request -> {
 				CorsConfiguration corsConfiguration = new CorsConfiguration();
 				corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173", "https://scenepick.co.kr"));
-				corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+				corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 				corsConfiguration.setAllowCredentials(true);
 				corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
 				return corsConfiguration;
@@ -53,7 +53,8 @@ public class SecurityConfig {
 						"/api/v1/user/signup",
 						"/api/v1/user/refresh",
 						"/api/v1/user/login",
-						"/api/v1/user/me"
+						"/api/v1/user/me",
+						"/actuator/health"
 					)
 					.permitAll()
 					// Swagger 경로 접근

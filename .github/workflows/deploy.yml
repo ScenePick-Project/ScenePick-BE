@@ -1,4 +1,4 @@
-name: Deploy Dev to k3s
+name: Deploy to k3s
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
 
       - name: Configure SSH
         run: |
@@ -73,6 +73,8 @@ jobs:
             IdentityFile ~/.ssh/scenepick.key
             ProxyJump bastion
             StrictHostKeyChecking no
+            ServerAliveInterval 30
+            ServerAliveCountMax 20
           EOF
 
       - name: Deploy manifests to k3s
@@ -84,7 +86,7 @@ jobs:
           rm -rf ~/k8s
           mkdir -p ~/k8s
           tar -xzf ~/k8s.tar.gz -C ~
-          sed -i "s|${{ env.DOCKER_IMAGE }}:placeholder|${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}|g" ~/k8s/deployment.yaml
+          sed -i "s|${{ env.DOCKER_IMAGE }}:placeholder|${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}|g" ~/k8s/deployment.yml
           kubectl apply -f - <<'SECRET'
           apiVersion: v1
           kind: Secret
@@ -108,11 +110,17 @@ jobs:
             JWT_SECRET: "${{ secrets.JWT_SECRET }}"
             TMDB_API_TOKEN: "${{ secrets.TMDB_API_TOKEN }}"
           SECRET
-          kubectl apply -f ~/k8s/deployment.yaml
-          kubectl apply -f ~/k8s/service.yaml
-          if kubectl -n default get service backend-service -o jsonpath='{.spec.selector.run}' | grep -q .; then
-            kubectl -n default patch service backend-service --type=json -p='[{"op":"remove","path":"/spec/selector/run"}]'
+          kubectl apply -f ~/k8s/deployment.yml
+          kubectl apply -f ~/k8s/service.yml
+
+          if ! kubectl -n default rollout status deployment/scenepick-app --timeout=5m; then
+            echo "Rollout failed — rolling back to previous version"
+            kubectl -n default rollout undo deployment/scenepick-app
+            if ! kubectl -n default rollout status deployment/scenepick-app --timeout=3m; then
+              echo "Rollback also failed — manual intervention required"
+            fi
+            exit 1
           fi
-          kubectl -n default rollout restart deployment/scenepick-app
-          kubectl -n default rollout status deployment/scenepick-app
+
+          echo "Deployment successful"
           EOF
