@@ -5,7 +5,6 @@ import com.project.scenepickbe.common.jwt.JwtAuthenticationFilter;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
 import com.project.scenepickbe.common.security.oauth.CustomerOauth2UserService;
 import com.project.scenepickbe.common.security.oauth.OAuth2SuccessHandler;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,14 +70,6 @@ public class SecurityConfig {
 				)
 				.successHandler(oAuth2SuccessHandler)
 			)
-			// 로그아웃
-			.logout(logout -> logout
-				.logoutUrl("/api/v1/user/logout")
-				.logoutSuccessHandler((request, response, authentication) -> {
-					response.setStatus(HttpServletResponse.SC_OK); // 성공 시 200 OK만 반환
-				})
-			)
-
 			// JWT 쿠키 필터 추가
 			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint),
 				UsernamePasswordAuthenticationFilter.class);
