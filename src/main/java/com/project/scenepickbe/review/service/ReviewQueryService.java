@@ -72,29 +72,24 @@ public class ReviewQueryService {
 			return new ReviewResponse.SliceList(Collections.emptyList(), null, false);
 		}
 
-		List<ReviewResponse.Review> enrichedReviews = enrichReviewsWithLikeDataBatch(reviewVoList, currentUserId);
+		boolean hasNext = reviewVoList.size() > pageSize;
+		List<ReviewVo> pageVoList = hasNext ? reviewVoList.subList(0, pageSize) : reviewVoList;
 
-		CursorPaging.Slice<ReviewResponse.Review, ReviewResponse.Cursor> slice = CursorPaging.toSlice(
-			enrichedReviews,
-			pageSize,
-			last -> {
-				if (SORT_POPULAR.equals(sortBy)) {
-					return new ReviewResponse.Cursor(
-						reviewVoList.get(enrichedReviews.indexOf(last)).getCreatedAt(),
-						last.reviewId(),
-						last.likeCount()
-					);
-				} else {
-					return new ReviewResponse.Cursor(
-						reviewVoList.get(enrichedReviews.indexOf(last)).getCreatedAt(),
-						last.reviewId(),
-						null
-					);
-				}
+		List<ReviewResponse.Review> enrichedReviews = enrichReviewsWithLikeDataBatch(pageVoList, currentUserId);
+
+		ReviewResponse.Cursor nextCursor = null;
+		if (hasNext) {
+			ReviewVo lastVo = pageVoList.get(pageSize - 1);
+			ReviewResponse.Review lastReview = enrichedReviews.get(pageSize - 1);
+			if (SORT_POPULAR.equals(sortBy)) {
+				nextCursor = new ReviewResponse.Cursor(lastVo.getCreatedAt(), lastReview.reviewId(),
+					lastReview.likeCount());
+			} else {
+				nextCursor = new ReviewResponse.Cursor(lastVo.getCreatedAt(), lastReview.reviewId(), null);
 			}
-		);
+		}
 
-		return new ReviewResponse.SliceList(slice.items(), slice.nextCursor(), slice.hasNext());
+		return new ReviewResponse.SliceList(enrichedReviews, nextCursor, hasNext);
 	}
 
 	/**

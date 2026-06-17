@@ -6,7 +6,7 @@ build/
 !**/src/test/**/build/
 .kiro
 .aidlc-rule-details
-aidlc-docs
+.aidlc-docs/audit.md
 CLAUDE.md
 
 ### STS ###
@@ -55,3 +55,6 @@ out/
 
 ### mapperImpl ###
 /src/main/generated/
+
+### AI-DLC ###
+aidlc-docs/audit.md

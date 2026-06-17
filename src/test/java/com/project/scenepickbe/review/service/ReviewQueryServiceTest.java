@@ -248,6 +248,56 @@ class ReviewQueryServiceTest {
 		verify(reviewLikeDao, never()).countReviewLikes(anyLong());
 	}
 
+	@Test
+	@DisplayName("hasNext=true이면 enrich는 pageSize개에 대해서만 호출")
+	void getReviewList_EnrichCalledWithPageSizeOnly() {
+		Long contentId = 21L;
+		ReviewRequest.Slice request = new ReviewRequest.Slice(3, null, null, null, null);
+
+		// limit=4(pageSize+1)개 반환 → hasNext=true
+		List<ReviewVo> mockVoList = List.of(
+			reviewVo(1L, LocalDateTime.of(2026, 2, 1, 10, 0)),
+			reviewVo(2L, LocalDateTime.of(2026, 2, 1, 9, 0)),
+			reviewVo(3L, LocalDateTime.of(2026, 2, 1, 8, 0)),
+			reviewVo(4L, LocalDateTime.of(2026, 2, 1, 7, 0))
+		);
+
+		when(reviewDao.selectReviewCursor(any(), any(), any(), eq(4))).thenReturn(mockVoList);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(Map.of());
+
+		reviewQueryService.getReviewList(contentId, null, request);
+
+		// enrich 배치 쿼리는 pageSize=3개 reviewId만 전달받아야 함 (4번째 VO는 제외)
+		verify(reviewLikeDao).countReviewLikesBatch(List.of(1L, 2L, 3L));
+		verify(reviewLikeDao, never()).countReviewLikesBatch(List.of(1L, 2L, 3L, 4L));
+	}
+
+	@Test
+	@DisplayName("hasNext=true이면 POPULAR sort에서도 enrich는 pageSize개에 대해서만 호출")
+	void getReviewList_PopularEnrichCalledWithPageSizeOnly() {
+		Long contentId = 21L;
+		ReviewRequest.Slice request = new ReviewRequest.Slice(3, "POPULAR", null, null, null);
+
+		// limit=4(pageSize+1)개 반환 → hasNext=true
+		List<ReviewVo> mockVoList = List.of(
+			reviewVo(1L, LocalDateTime.of(2026, 2, 1, 10, 0)),
+			reviewVo(2L, LocalDateTime.of(2026, 2, 1, 9, 0)),
+			reviewVo(3L, LocalDateTime.of(2026, 2, 1, 8, 0)),
+			reviewVo(4L, LocalDateTime.of(2026, 2, 1, 7, 0))
+		);
+
+		when(reviewDao.selectReviewCursorByPopularity(any(), any(), any(), any(), eq(4))).thenReturn(mockVoList);
+		when(reviewLikeDao.countReviewLikesBatch(anyList())).thenReturn(batchLikeCounts(
+			Map.of(1L, 10, 2L, 5, 3L, 3)
+		));
+
+		reviewQueryService.getReviewList(contentId, null, request);
+
+		// enrich 배치 쿼리는 pageSize=3개 reviewId만 전달받아야 함
+		verify(reviewLikeDao).countReviewLikesBatch(List.of(1L, 2L, 3L));
+		verify(reviewLikeDao, never()).countReviewLikesBatch(List.of(1L, 2L, 3L, 4L));
+	}
+
 	private ReviewVo reviewVo(Long reviewId, LocalDateTime createdAt) {
 		ReviewVo vo = new ReviewVo();
 		vo.setReviewId(reviewId);
