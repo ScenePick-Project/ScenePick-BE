@@ -6,7 +6,6 @@ build/
 !**/src/test/**/build/
 .kiro
 .aidlc-rule-details
-aidlc-docs
 CLAUDE.md
 
 ### STS ###
