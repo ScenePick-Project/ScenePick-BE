@@ -5,10 +5,11 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,6 +18,7 @@ import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.enums.GenreType;
+import com.project.scenepickbe.content.mapper.ContentDtoMapper;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.content.vo.EpisodeVo;
 import com.project.scenepickbe.content.vo.CreditVo;
@@ -24,11 +26,16 @@ import com.project.scenepickbe.content.vo.CreditVo;
 @ExtendWith(MockitoExtension.class)
 class ContentQueryServiceTest {
 
-	@InjectMocks
 	private ContentQueryService contentQueryService;
 
 	@Mock
 	private ContentDao contentDao;
+
+	@BeforeEach
+	void setup() {
+		ContentDtoMapper mapper = Mappers.getMapper(ContentDtoMapper.class);
+		contentQueryService = new ContentQueryService(contentDao, mapper);
+	}
 
 	@Test
 	@DisplayName("작품 기본정보 조회 성공")
