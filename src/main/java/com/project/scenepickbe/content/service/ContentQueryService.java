@@ -10,10 +10,8 @@ import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.enums.ContentType;
-import com.project.scenepickbe.content.vo.ContentSeasonVo;
+import com.project.scenepickbe.content.mapper.ContentDtoMapper;
 import com.project.scenepickbe.content.vo.ContentVo;
-import com.project.scenepickbe.content.vo.CreditVo;
-import com.project.scenepickbe.content.vo.EpisodeVo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ContentQueryService {
 	private final ContentDao contentDao;
+	private final ContentDtoMapper contentDtoMapper;
 
 	/**
 	 * 작품 기본 정보 조회
@@ -42,22 +41,11 @@ public class ContentQueryService {
 
 		Integer defaultSeasonNo = contentVo.getContentType() == ContentType.TV ? 1 : null;
 		List<ContentResponse.Season> seasonList = contentVo.getContentType() == ContentType.TV
-			? contentDao.selectContentSeasons(contentId).stream()
-			.map(season -> new ContentResponse.Season(
-				season.getSeasonId(),
-				season.getSeasonNo(),
-				season.getName(),
-				season.getOverview(),
-				season.getPosterImageUrl()
-			))
-			.collect(Collectors.toList())
+			? contentDtoMapper.toSeasons(contentDao.selectContentSeasons(contentId))
 			: List.of();
 
-		return new ContentResponse.Basic(
-			contentVo.getContentId(),
-			contentVo.getTitle(),
-			contentVo.getPosterImageUrl(),
-			contentVo.getSynopsis(),
+		return contentDtoMapper.toBasic(
+			contentVo,
 			genreList,
 			defaultSeasonNo,
 			seasonList
@@ -70,18 +58,7 @@ public class ContentQueryService {
 	 * @return 출연진 리스트 DTO
 	 */
 	public ContentResponse.CreditList getCredits(Long contentId) {
-		List<CreditVo> creditVoList = contentDao.selectContentCredits(contentId);
-
-		List<ContentResponse.Credit> creditDtoList = creditVoList.stream()
-			.map(vo -> new ContentResponse.Credit(
-				vo.getCreditId(),
-				vo.getName(),
-				vo.getCharName(),
-				vo.getProfileImageUrl()
-			))
-			.collect(Collectors.toList());
-
-		return new ContentResponse.CreditList(creditDtoList);
+		return contentDtoMapper.toCreditList(contentDao.selectContentCredits(contentId));
 	}
 
 	/**
@@ -91,19 +68,7 @@ public class ContentQueryService {
 	 * @return 에피소드 리스트 DTO
 	 */
 	public ContentResponse.EpisodeList getEpisodes(Long contentId, Integer seasonNo) {
-		List<EpisodeVo> episodeVoList = contentDao.selectSeasonEpisodes(contentId, seasonNo);
-
-		List<ContentResponse.Episode> episodeList = episodeVoList.stream()
-			.map(vo -> new ContentResponse.Episode(
-				vo.getEpisodeId(),
-				vo.getEpisodeNo(),
-				vo.getTitle(),
-				vo.getSummary(),
-				vo.getStillImageUrl()
-			))
-			.collect(Collectors.toList());
-
-		return new ContentResponse.EpisodeList(episodeList);
+		return contentDtoMapper.toEpisodeList(contentDao.selectSeasonEpisodes(contentId, seasonNo));
 	}
 
 	/**
@@ -112,19 +77,7 @@ public class ContentQueryService {
 	 * @return 시즌 리스트 DTO
 	 */
 	public ContentResponse.SeasonList getSeasons(Long contentId) {
-		List<ContentSeasonVo> seasonVoList = contentDao.selectContentSeasons(contentId);
-
-		List<ContentResponse.Season> seasonList = seasonVoList.stream()
-			.map(season -> new ContentResponse.Season(
-				season.getSeasonId(),
-				season.getSeasonNo(),
-				season.getName(),
-				season.getOverview(),
-				season.getPosterImageUrl()
-			))
-			.collect(Collectors.toList());
-
-		return new ContentResponse.SeasonList(seasonList);
+		return contentDtoMapper.toSeasonList(contentDao.selectContentSeasons(contentId));
 	}
 
 	/**
@@ -134,17 +87,6 @@ public class ContentQueryService {
 	 * @return 시즌 출연진 리스트 DTO
 	 */
 	public ContentResponse.CreditList getSeasonCredits(Long contentId, Integer seasonNo) {
-		List<CreditVo> seasonCreditVoList = contentDao.selectSeasonCredits(contentId, seasonNo);
-
-		List<ContentResponse.Credit> seasonCreditList = seasonCreditVoList.stream()
-			.map(credit -> new ContentResponse.Credit(
-				credit.getCreditId(),
-				credit.getName(),
-				credit.getCharName(),
-				credit.getProfileImageUrl()
-			))
-			.collect(Collectors.toList());
-
-		return new ContentResponse.CreditList(seasonCreditList);
+		return contentDtoMapper.toCreditList(contentDao.selectSeasonCredits(contentId, seasonNo));
 	}
 }
