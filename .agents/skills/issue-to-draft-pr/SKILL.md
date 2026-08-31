@@ -10,6 +10,7 @@ The user gives the issue URL once. After that, the only human loop is:
 
 - answering `grilling` questions
 - explicit safety or approval gates
+- the final `push` and Draft PR confirmation
 
 Do not ask the user to invoke another slash command, restate the issue, or
 resume the workflow manually after `grilling`.
@@ -123,11 +124,17 @@ When the `implement` procedure succeeds:
 
 1. Confirm the branch has committed work relative to `origin/dev`.
 2. Confirm required quality gates are green from the implementation phase.
-3. Call the Skill tool with `create-pr`, making clear that this workflow requires draft PR state.
-4. If this workflow requires a draft PR, verify the created PR state is draft.
-   If the available PR path cannot produce a draft automatically, stop and
-   report that gap instead of silently creating the wrong PR state.
-5. Verify the created PR state before declaring success.
+3. Summarize the implementation result, key validation commands, and commit SHAs.
+4. Ask the user: `push하고 Draft PR 만들까요?`
+5. Only if the user explicitly approves, call the Skill tool with `create-pr`,
+   making clear that this workflow requires draft PR state.
+6. If draft PR state is required, verify the created PR state is draft. If the
+   available PR path cannot produce a draft automatically, stop and report that
+   gap instead of silently creating the wrong PR state.
+7. Verify the created PR state before declaring success.
+
+Do not push or create the PR before the user explicitly approves this final
+remote mutation step.
 
 ## Stop conditions
 
@@ -141,6 +148,7 @@ Stop instead of pushing or opening a PR when any of these happen:
 - the implementation phase reports unresolved P0 or P1 issues
 - required tests, build, lint, or checkstyle gates are red
 - self review says the current approach is wrong and needs a different design
+- the user does not approve push and Draft PR creation
 - draft PR creation is required but the available PR path cannot create draft state correctly
 
 P0 and P1 mean blocker-level findings:
