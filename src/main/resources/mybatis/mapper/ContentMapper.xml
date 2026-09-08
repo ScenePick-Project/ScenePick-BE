@@ -3,6 +3,25 @@
 
 <mapper namespace="com.project.scenepickbe.content.dao.ContentDao">
 
+    <resultMap id="homeContentResultMap" type="com.project.scenepickbe.content.vo.ContentVo">
+        <id property="contentId" column="CONTENT_ID"/>
+        <result property="title" column="TITLE"/>
+        <result property="posterImageUrl" column="POSTER_IMAGE_URL"/>
+        <result property="contentType" column="CONTENT_TYPE"/>
+    </resultMap>
+
+    <select id="selectRandomContentsForHome" resultMap="homeContentResultMap">
+        SELECT C.CONTENT_ID,
+               C.TITLE,
+               C.POSTER_IMAGE_URL,
+               C.CONTENT_TYPE
+        FROM CONTENT C
+        WHERE C.CONTENT_TYPE IN ('MOVIE', 'TV')
+          AND REGEXP_LIKE(C.POSTER_IMAGE_URL, '[^[:space:]]')
+        ORDER BY DBMS_RANDOM.VALUE
+        FETCH FIRST 10 ROWS ONLY
+    </select>
+
     <resultMap id="contentResultMap" type="com.project.scenepickbe.content.vo.ContentVo">
         <id property="contentId" column="CONTENT_ID"/>
         <result property="tmdbId" column="TMDB_ID"/>

@@ -16,6 +16,11 @@ import com.project.scenepickbe.content.vo.EpisodeVo;
 public interface ContentDao {
 
 	/**
+	 * 포스터가 있는 영화/TV 작품을 중복 없이 랜덤으로 최대 10개 조회
+	 */
+	List<ContentVo> selectRandomContentsForHome();
+
+	/**
 	 * 특정 작품 기본 정보 조회
 	 */
 	ContentVo selectContentBasic(Long contentId);
