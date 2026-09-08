@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.scenepickbe.moment.dao.MomentDao">
+    <insert id="insertMoment" useGeneratedKeys="true" keyProperty="momentId" keyColumn="MOMENT_ID">
+        INSERT INTO MOMENT (USER_ID, CONTENT_ID, YOUTUBE_ID, START_TIME, END_TIME, MEMO)
+        VALUES (#{userId}, #{contentId}, #{youtubeId}, #{startTime}, #{endTime}, #{memo,jdbcType=CLOB})
+    </insert>
+
+    <select id="selectMoment" resultType="com.project.scenepickbe.moment.vo.MomentVo">
+        SELECT MOMENT_ID, USER_ID, CONTENT_ID, YOUTUBE_ID, START_TIME, END_TIME, MEMO, CREATED_AT, UPDATED_AT
+        FROM MOMENT
+        WHERE MOMENT_ID = #{momentId} AND USER_ID = #{userId} AND DEL_YN = 'N'
+    </select>
+
+    <select id="selectMomentCursor" resultType="com.project.scenepickbe.moment.vo.MomentVo">
+        SELECT MOMENT_ID, USER_ID, CONTENT_ID, YOUTUBE_ID, START_TIME, END_TIME, MEMO, CREATED_AT, UPDATED_AT
+        FROM MOMENT
+        WHERE USER_ID = #{userId} AND DEL_YN = 'N'
+        <if test="contentId != null">
+            AND CONTENT_ID = #{contentId}
+        </if>
+        <if test="youtubeId != null">
+            AND YOUTUBE_ID = #{youtubeId}
+        </if>
+        <if test="cursorCreatedAt != null">
+            AND (CREATED_AT &lt; #{cursorCreatedAt}
+                OR (CREATED_AT = #{cursorCreatedAt} AND MOMENT_ID &lt; #{cursorMomentId}))
+        </if>
+        ORDER BY CREATED_AT DESC, MOMENT_ID DESC
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+    <select id="existsContent" resultType="int">
+        SELECT COUNT(*) FROM CONTENT WHERE CONTENT_ID = #{value}
+    </select>
+
+    <select id="selectMomentForUpdate" resultType="com.project.scenepickbe.moment.vo.MomentVo">
+        SELECT MOMENT_ID, USER_ID, CONTENT_ID, YOUTUBE_ID, START_TIME, END_TIME, MEMO, CREATED_AT, UPDATED_AT
+        FROM MOMENT
+        WHERE MOMENT_ID = #{momentId} AND USER_ID = #{userId} AND DEL_YN = 'N'
+        FOR UPDATE
+    </select>
+
+    <update id="updateMoment">
+        UPDATE MOMENT
+        SET START_TIME = #{startTime}, END_TIME = #{endTime}, MEMO = #{memo,jdbcType=CLOB},
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE MOMENT_ID = #{momentId} AND USER_ID = #{userId} AND DEL_YN = 'N'
+    </update>
+
+    <update id="deleteMoment">
+        UPDATE MOMENT
+        SET DEL_YN = 'Y', DELETED_AT = SYSTIMESTAMP, UPDATED_AT = SYSTIMESTAMP
+        WHERE MOMENT_ID = #{momentId} AND USER_ID = #{userId} AND DEL_YN = 'N'
+    </update>
+</mapper>
