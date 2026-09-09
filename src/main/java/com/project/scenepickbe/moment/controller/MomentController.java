@@ -35,10 +35,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @ApiResponses({
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
-		description = "COMMON400: 잘못된 입력, 시간 구간 또는 커서",
+		description = "COMMON400: 잘못된 입력·시간 구간 / PAGING4001: 커서 쌍 불일치",
 		content = @Content(schema = @Schema(implementation = ApiResponse.class))),
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
-		description = "COMMON401: 로그인 필요", content = @Content),
+		description = "COMMON401: 로그인 필요",
+		content = @Content(schema = @Schema(implementation = ApiResponse.class))),
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404",
 		description = "CONTENT4001: 작품 없음 / MOMENT4001: 본인 모먼트 없음 또는 삭제됨",
 		content = @Content(schema = @Schema(implementation = ApiResponse.class)))
@@ -89,6 +90,9 @@ public class MomentController {
 			momentCommandService.updateMoment(momentId, userId(user), request)));
 	}
 
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+		description = "삭제 성공. result는 null입니다.",
+		content = @Content(schema = @Schema(implementation = ApiResponse.class)))
 	@DeleteMapping("/moments/{momentId}")
 	@Operation(summary = "내 모먼트 삭제", description = "본인 모먼트를 소프트 삭제하여 목록과 상세에서 제외합니다.")
 	public ResponseEntity<ApiResponse<?>> deleteMoment(
