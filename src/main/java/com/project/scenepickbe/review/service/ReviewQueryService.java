@@ -1,6 +1,5 @@
 package com.project.scenepickbe.review.service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -141,11 +140,11 @@ public class ReviewQueryService {
 			.map(ReviewVo::getReviewId)
 			.toList();
 
-		Map<Long, Map<String, Object>> batchResult = reviewLikeDao.countReviewLikesBatch(reviewIds);
+		Map<Number, Map<String, Object>> batchResult = reviewLikeDao.countReviewLikesBatch(reviewIds);
 		Map<Long, Integer> likeCountMap = batchResult.entrySet().stream()
 			.collect(Collectors.toMap(
-				Map.Entry::getKey,
-				entry -> ((BigDecimal)entry.getValue().get("LIKE_COUNT")).intValue()
+				entry -> entry.getKey().longValue(),
+				entry -> ((Number)entry.getValue().get("LIKE_COUNT")).intValue()
 			));
 
 		Set<Long> likedReviewIds = Collections.emptySet();
