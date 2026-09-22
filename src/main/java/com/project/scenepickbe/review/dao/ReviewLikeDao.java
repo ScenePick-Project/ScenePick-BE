@@ -56,7 +56,7 @@ public interface ReviewLikeDao {
 	 * @return Map<reviewId, Map<column, value>>
 	 */
 	@MapKey("REVIEW_ID")
-	Map<Long, Map<String, Object>> countReviewLikesBatch(@Param("reviewIds") List<Long> reviewIds);
+	Map<Number, Map<String, Object>> countReviewLikesBatch(@Param("reviewIds") List<Long> reviewIds);
 
 	/**
 	 * 특정 사용자가 여러 리뷰에 좋아요를 눌렀는지 일괄 조회

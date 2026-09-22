@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -298,6 +300,41 @@ class ReviewQueryServiceTest {
 		verify(reviewLikeDao, never()).countReviewLikesBatch(List.of(1L, 2L, 3L, 4L));
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"LATEST", "POPULAR"})
+	@DisplayName("Oracle 숫자 키의 배치 좋아요 수와 인기순 커서를 정확히 반환한다")
+	void getReviewList_WithOracleLikeCountKeys(String sortBy) {
+		LocalDateTime createdAt = LocalDateTime.of(2026, 2, 1, 10, 0);
+		List<ReviewVo> reviews = List.of(
+			reviewVo(1L, createdAt), reviewVo(2L, createdAt.minusHours(1)),
+			reviewVo(3L, createdAt.minusHours(2)), reviewVo(4L, createdAt.minusHours(3))
+		);
+		if ("POPULAR".equals(sortBy)) {
+			when(reviewDao.selectReviewCursorByPopularity(21L, null, null, null, 4)).thenReturn(reviews);
+		} else {
+			when(reviewDao.selectReviewCursor(21L, null, null, 4)).thenReturn(reviews);
+		}
+		Map<Number, Map<String, Object>> batchResult = Map.of(
+			new BigDecimal("1.0"),
+			Map.of("REVIEW_ID", new BigDecimal("1.0"), "LIKE_COUNT", new BigDecimal("15")),
+			new BigDecimal("2"), Map.of("REVIEW_ID", new BigDecimal("2"), "LIKE_COUNT", new BigDecimal("7"))
+		);
+		when(reviewLikeDao.countReviewLikesBatch(List.of(1L, 2L, 3L))).thenReturn(batchResult);
+		ReviewRequest.Slice request = new ReviewRequest.Slice(3, sortBy, null, null, null);
+
+		ReviewResponse.SliceList result = reviewQueryService.getReviewList(21L, null, request);
+
+		assertThat(result.reviewList()).extracting(ReviewResponse.Review::likeCount).containsExactly(15, 7, 0);
+		assertThat(result.reviewList()).extracting(ReviewResponse.Review::isLikedByCurrentUser)
+			.containsOnlyNulls();
+		assertThat(result.hasNext()).isTrue();
+		assertThat(result.nextCursor().reviewId()).isEqualTo(3L);
+		assertThat(result.nextCursor().createdAt()).isEqualTo(createdAt.minusHours(2));
+		assertThat(result.nextCursor().likeCount()).isEqualTo("POPULAR".equals(sortBy) ? 0 : null);
+		verify(reviewLikeDao).countReviewLikesBatch(List.of(1L, 2L, 3L));
+		verify(reviewLikeDao, never()).countReviewLikes(anyLong());
+	}
+
 	private ReviewVo reviewVo(Long reviewId, LocalDateTime createdAt) {
 		ReviewVo vo = new ReviewVo();
 		vo.setReviewId(reviewId);
@@ -305,10 +342,11 @@ class ReviewQueryServiceTest {
 		return vo;
 	}
 
-	private Map<Long, Map<String, Object>> batchLikeCounts(Map<Long, Integer> likeCounts) {
-		Map<Long, Map<String, Object>> result = new HashMap<>();
+	private Map<Number, Map<String, Object>> batchLikeCounts(Map<Long, Integer> likeCounts) {
+		Map<Number, Map<String, Object>> result = new HashMap<>();
 		likeCounts.forEach((reviewId, count) ->
-			result.put(reviewId, Map.of("LIKE_COUNT", BigDecimal.valueOf(count)))
+			result.put(BigDecimal.valueOf(reviewId), Map.of(
+				"REVIEW_ID", BigDecimal.valueOf(reviewId), "LIKE_COUNT", BigDecimal.valueOf(count)))
 		);
 		return result;
 	}
