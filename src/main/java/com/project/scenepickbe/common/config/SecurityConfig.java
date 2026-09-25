@@ -14,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -34,6 +35,8 @@ public class SecurityConfig {
 		JwtTokenProvider jwtTokenProvider,
 		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
 	) throws Exception {
+		RequestMatcher publicRecommendations = request -> "GET".equals(request.getMethod())
+			&& request.getRequestURI().equals(request.getContextPath() + "/api/v1/home/recommendations");
 		http
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.csrf(csrf -> csrf.disable())
@@ -48,6 +51,7 @@ public class SecurityConfig {
 			.exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.authorizeHttpRequests(
 				auth -> auth
+					.requestMatchers(publicRecommendations).permitAll()
 					.requestMatchers(
 						"/api/v1/user/signup",
 						"/api/v1/user/refresh",
@@ -71,7 +75,7 @@ public class SecurityConfig {
 				.successHandler(oAuth2SuccessHandler)
 			)
 			// JWT 쿠키 필터 추가
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint),
+			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint, publicRecommendations),
 				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();

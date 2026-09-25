@@ -10,6 +10,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -83,18 +86,23 @@ class HomeControllerTest {
 	}
 
 	@Test
-	void unauthenticatedRequestReturns401() throws Exception {
+	void unauthenticatedRequestReturnsRecommendations() throws Exception {
+		when(contentDao.selectRandomContentsForHome()).thenReturn(List.of());
+
 		mockMvc.perform(get("/api/v1/home/recommendations"))
-			.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.isSuccess").value(false))
-			.andExpect(jsonPath("$.code").value("COMMON401"));
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.result.recommendationType").value("RANDOM"))
+			.andExpect(jsonPath("$.result.contentList").isEmpty());
 	}
 
 	@Test
-	void invalidAccessCookieReturns401() throws Exception {
+	void invalidAccessCookieDoesNotBlockPublicRecommendations() throws Exception {
+		when(contentDao.selectRandomContentsForHome()).thenReturn(List.of());
+
 		mockMvc.perform(get("/api/v1/home/recommendations").cookie(new Cookie("access_token", "invalid")))
-			.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.isSuccess").value(false));
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isSuccess").value(true));
 	}
 
 	@Test
@@ -126,6 +134,61 @@ class HomeControllerTest {
 			.andExpect(jsonPath("$.code").value("COMMON500"));
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"valid", "expired", "invalid"})
+	void publicRecommendationsIgnoreCookieAndBearerCredentials(String credential) throws Exception {
+		String token = switch (credential) {
+			case "valid" -> accessCookie().getValue();
+			case "expired" -> new JwtTokenProvider(testSecret(), -1, 1)
+				.generateToken("home-test-user", List.of(new SimpleGrantedAuthority("ROLE_USER")))
+				.getAccessToken();
+			default -> "invalid";
+		};
+		when(contentDao.selectRandomContentsForHome()).thenReturn(List.of());
+
+		mockMvc.perform(get("/api/v1/home/recommendations").cookie(new Cookie("access_token", token)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.result.recommendationType").value("RANDOM"));
+		mockMvc.perform(get("/api/v1/home/recommendations").header("Authorization", "Bearer " + token))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.result.contentList").isEmpty());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"/api/v1/contents/17", "/api/v1/home/recommendations/extra",
+		"/api/v1/home/other", "/api/v1/home/recommendations/"})
+	void otherPathsRemainProtected(String path) throws Exception {
+		mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+		mockMvc.perform(get(path).cookie(new Cookie("access_token", "invalid")))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(get(path).header("Authorization", "Bearer invalid"))
+			.andExpect(status().isUnauthorized());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
+	void otherMethodsRemainProtected(String method) throws Exception {
+		mockMvc.perform(request(HttpMethod.valueOf(method), "/api/v1/home/recommendations"))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(request(HttpMethod.valueOf(method), "/api/v1/home/recommendations")
+			.cookie(new Cookie("access_token", "invalid")))
+			.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void publicRecommendationsWorkUnderAContextPath() throws Exception {
+		when(contentDao.selectRandomContentsForHome()).thenReturn(List.of());
+
+		mockMvc.perform(get("/scene/api/v1/home/recommendations").contextPath("/scene")
+			.cookie(new Cookie("access_token", "invalid")))
+			.andExpect(status().isOk());
+	}
+
+	private static String testSecret() {
+		return Base64.getEncoder().encodeToString(
+			"home-test-only-signing-key-not-for-production".getBytes(StandardCharsets.UTF_8));
+	}
+
 	private Cookie accessCookie() {
 		String token = jwtTokenProvider.generateToken("home-test-user",
 			List.of(new SimpleGrantedAuthority("ROLE_USER"))).getAccessToken();
@@ -150,8 +213,7 @@ class HomeControllerTest {
 
 		@Bean
 		JwtTokenProvider jwtTokenProvider() {
-			String secret = Base64.getEncoder().encodeToString(
-				"home-test-only-signing-key-not-for-production".getBytes(StandardCharsets.UTF_8));
+			String secret = testSecret();
 			return new JwtTokenProvider(secret, 5, 1);
 		}
 

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,8 +22,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtAuthenticationEntryPoint entryPoint;
+	private final RequestMatcher publicRecommendations;
 
 	public static final String ACCESS_TOKEN_COOKIE = "access_token";
+
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		return publicRecommendations.matches(request);
+	}
 
 	@Override
 	protected void doFilterInternal(

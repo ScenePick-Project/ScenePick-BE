@@ -80,7 +80,7 @@ class HomeContentOracleTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({"0, 0", "3, 3", "15, 10"})
+	@CsvSource({"0, 0", "1, 1", "3, 3", "15, 10"})
 	void selectsOnlyEligibleDistinctSummariesWithinLimit(int candidateCount, int expectedCount) throws Exception {
 		try (SqlSession session = sqlSessionFactory.openSession()) {
 			try {
