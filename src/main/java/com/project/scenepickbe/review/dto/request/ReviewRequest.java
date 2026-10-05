@@ -33,7 +33,10 @@ public class ReviewRequest {
 		Integer startTime,
 
 		@Schema(description = "유튜브 종료 시간")
-		Integer endTime
+		Integer endTime,
+
+		@Schema(description = "선택 별점: 0.5~5.0, 0.5 간격")
+		java.math.BigDecimal rating
 	) {
 	}
 

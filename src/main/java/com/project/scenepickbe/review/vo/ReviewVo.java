@@ -39,6 +39,8 @@ public class ReviewVo extends BaseVo {
 	/** 첨부 트랙 아이디 */
 	private String trackId;
 
+	private java.math.BigDecimal rating;
+
 	/** 삭제 여부 (Y,N)*/
 	private String delYn;
 

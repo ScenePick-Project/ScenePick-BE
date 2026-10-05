@@ -5,7 +5,7 @@
 
     <insert id="insertReview" useGeneratedKeys="true" keyProperty="reviewId" keyColumn="REVIEW_ID">
         INSERT INTO REVIEW (CONTENT_ID, USER_ID, REVIEW_BODY, IS_SPOILER, TRACK_ID, YOUTUBE_ID, START_TIME, END_TIME,
-                            CREATED_AT, DEL_YN)
+                            CREATED_AT, DEL_YN, RATING)
         VALUES (#{contentId},
                 #{userId},
                 #{reviewBody},
@@ -15,7 +15,7 @@
                 #{startTime, jdbcType=NUMERIC},
                 #{endTime, jdbcType=NUMERIC},
                 SYSTIMESTAMP,
-                'N')
+                'N', #{rating, jdbcType=NUMERIC})
     </insert>
 
     <select id="selectReview" resultType="ReviewVo">
@@ -25,6 +25,7 @@
                R.REVIEW_BODY,
                R.IS_SPOILER,
                R.TRACK_ID,
+               R.RATING,
                R.YOUTUBE_ID,
                R.START_TIME,
                R.END_TIME,
@@ -42,6 +43,7 @@
                R.REVIEW_BODY,
                R.IS_SPOILER,
                R.TRACK_ID,
+               R.RATING,
                R.YOUTUBE_ID,
                R.START_TIME,
                R.END_TIME,
@@ -60,6 +62,7 @@
         R.REVIEW_BODY,
         R.IS_SPOILER,
         R.TRACK_ID,
+               R.RATING,
         R.YOUTUBE_ID,
         R.START_TIME,
         R.END_TIME,
@@ -93,6 +96,7 @@
         R.REVIEW_BODY,
         R.IS_SPOILER,
         R.TRACK_ID,
+               R.RATING,
         R.YOUTUBE_ID,
         R.START_TIME,
         R.END_TIME,

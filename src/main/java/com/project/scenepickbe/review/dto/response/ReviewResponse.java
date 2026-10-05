@@ -50,7 +50,10 @@ public class ReviewResponse {
 		Boolean isLikedByCurrentUser,
 
 		@Schema(description = "리뷰 생성 시각")
-		LocalDateTime createdAt
+		LocalDateTime createdAt,
+
+		@Schema(description = "별점, 미평가시 null")
+		java.math.BigDecimal rating
 	) {
 	}
 

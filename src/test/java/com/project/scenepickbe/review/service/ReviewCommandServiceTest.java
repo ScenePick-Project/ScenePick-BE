@@ -42,7 +42,7 @@ class ReviewCommandServiceTest {
 			"track123",
 			"youtube123",
 			10,
-			20
+			20, null
 		);
 
 		when(reviewDao.insertReview(org.mockito.ArgumentMatchers.any(ReviewVo.class)))
