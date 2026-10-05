@@ -73,7 +73,7 @@ public class MyPageService {
 	@Transactional
 	public void rate(String userId, long reviewId, BigDecimal rating) {
 		owner(userId);
-		MyPageRequest.validateRating(rating);
+		com.project.scenepickbe.review.dto.request.ReviewRequest.validateRating(rating);
 		if (dao.rate(userId, reviewId, rating) == 0) throw new GeneralException(ErrorStatus.REVIEW_NOT_FOUND);
 	}
 	private void add(IntSupplier insert) {

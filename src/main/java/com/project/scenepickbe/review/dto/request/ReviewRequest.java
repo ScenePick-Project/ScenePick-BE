@@ -1,8 +1,12 @@
 package com.project.scenepickbe.review.dto.request;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
+
+import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
+import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -36,7 +40,7 @@ public class ReviewRequest {
 		Integer endTime,
 
 		@Schema(description = "선택 별점: 0.5~5.0, 0.5 간격")
-		java.math.BigDecimal rating
+		BigDecimal rating
 	) {
 	}
 
@@ -59,5 +63,12 @@ public class ReviewRequest {
 		@Schema(description = "이전 페이지의 마지막 리뷰 좋아요 수 (POPULAR 정렬 시 필요)")
 		Integer cursorLikeCount
 	) {
+	}
+	public static void validateRating(BigDecimal rating) {
+		if (rating != null && (rating.compareTo(new BigDecimal("0.5")) < 0
+			|| rating.compareTo(new BigDecimal("5")) > 0
+			|| rating.remainder(new BigDecimal("0.5")).signum() != 0)) {
+			throw new GeneralException(ErrorStatus._BAD_REQUEST);
+		}
 	}
 }

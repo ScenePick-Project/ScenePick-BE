@@ -1,8 +1,6 @@
 package com.project.scenepickbe.mypage;
 
 import java.math.BigDecimal;
-import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
-import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
 
 public class MyPageRequest {
 	@io.swagger.v3.oas.annotations.media.Schema(name = "MyPageCursorRequest")
@@ -32,11 +30,4 @@ public class MyPageRequest {
 		public void setImageKey(String value) { imageKey = value; imageKeyProvided = true; }
 	}
 
-	public static void validateRating(BigDecimal rating) {
-		if (rating != null && (rating.compareTo(new BigDecimal("0.5")) < 0
-			|| rating.compareTo(new BigDecimal("5")) > 0
-			|| rating.remainder(new BigDecimal("0.5")).signum() != 0)) {
-			throw new GeneralException(ErrorStatus._BAD_REQUEST);
-		}
-	}
 }

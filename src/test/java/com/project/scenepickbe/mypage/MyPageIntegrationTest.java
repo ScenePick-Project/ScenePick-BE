@@ -123,7 +123,8 @@ class MyPageIntegrationTest {
 			.andExpect(jsonPath("$.result.bio").value("소개")).andExpect(jsonPath("$.result.followingCount").value(0));
 		mvc.perform(as(patch("/api/v1/me/profile").contentType(MediaType.APPLICATION_JSON).content("{\"bio\":null,\"imageKey\":null}"),owner)).andExpect(status().isOk());
 		mvc.perform(as(get("/api/v1/me/profile"),owner)).andExpect(jsonPath("$.result.bio").doesNotExist());
-		for(String body:List.of("{\"nickname\":null}","{\"nickname\":\" \"}", json.writeValueAsString(Map.of("bio","a".repeat(501)))))
+		mvc.perform(as(patch("/api/v1/me/profile").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("nickname", "가".repeat(30)))),owner)).andExpect(status().isOk());
+        for(String body:List.of("{\"nickname\":null}","{\"nickname\":\" \"}", json.writeValueAsString(Map.of("bio","a".repeat(501)))))
 			mvc.perform(as(patch("/api/v1/me/profile").contentType(MediaType.APPLICATION_JSON).content(body),owner)).andExpect(status().isBadRequest());
 	}
 	@Test void ratingsExcludeUnratedDeletedAndOtherUsersReviews() throws Exception {

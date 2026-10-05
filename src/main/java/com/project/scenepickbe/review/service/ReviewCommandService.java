@@ -27,7 +27,7 @@ public class ReviewCommandService {
 	 * @return 생성된 리뷰 ID 응답
 	 */
 	public ReviewResponse.Created createReview(Long contentId, String userId, ReviewRequest.Create request) {
-		com.project.scenepickbe.mypage.MyPageRequest.validateRating(request.rating());
+		ReviewRequest.validateRating(request.rating());
 		ReviewVo reviewVo = reviewDtoMapper.toVo(request, contentId, userId);
 		reviewDao.insertReview(reviewVo);
 
