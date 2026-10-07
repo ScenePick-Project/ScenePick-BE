@@ -39,10 +39,17 @@ import com.project.scenepickbe.common.jwt.JwtAuthenticationEntryPoint;
 import com.project.scenepickbe.common.jwt.JwtTokenProvider;
 import com.project.scenepickbe.common.security.oauth.CustomerOauth2UserService;
 import com.project.scenepickbe.common.security.oauth.OAuth2SuccessHandler;
+import com.project.scenepickbe.content.controller.ContentController;
 import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.enums.ContentType;
+import com.project.scenepickbe.content.service.ContentQueryService;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.home.service.HomeQueryService;
+import com.project.scenepickbe.review.controller.ReviewController;
+import com.project.scenepickbe.review.controller.ReviewLikeController;
+import com.project.scenepickbe.review.service.ReviewCommandService;
+import com.project.scenepickbe.review.service.ReviewLikeCommandService;
+import com.project.scenepickbe.review.service.ReviewQueryService;
 import com.project.scenepickbe.user.dao.UserDao;
 
 import jakarta.servlet.Filter;
@@ -62,11 +69,14 @@ class HomeControllerTest {
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
 
+	@Autowired
+	private ReviewQueryService reviewQueryService;
+
 	private MockMvc mockMvc;
 
 	@BeforeEach
 	void setUp() {
-		reset(contentDao);
+		reset(contentDao, reviewQueryService);
 		mockMvc = MockMvcBuilders.webAppContextSetup(context)
 			.addFilters(context.getBean("springSecurityFilterChain", Filter.class))
 			.build();
@@ -155,13 +165,48 @@ class HomeControllerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"/api/v1/contents/17", "/api/v1/home/recommendations/extra",
+	@ValueSource(strings = {"/api/v1/home/recommendations/extra",
 		"/api/v1/home/other", "/api/v1/home/recommendations/"})
 	void otherPathsRemainProtected(String path) throws Exception {
 		mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
 		mockMvc.perform(get(path).cookie(new Cookie("access_token", "invalid")))
 			.andExpect(status().isUnauthorized());
 		mockMvc.perform(get(path).header("Authorization", "Bearer invalid"))
+			.andExpect(status().isUnauthorized());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"/api/v1/contents/17",
+		"/api/v1/contents/17/credits",
+		"/api/v1/contents/17/seasons",
+		"/api/v1/contents/17/seasons/1/episodes",
+		"/api/v1/contents/17/seasons/1/credits",
+		"/api/v1/contents/17/reviews",
+		"/api/v1/reviews/1"
+	})
+	void publicContentAndReviewReadsIgnoreInvalidCredentials(String path) throws Exception {
+		mockMvc.perform(get(path).cookie(new Cookie("access_token", "invalid")))
+			.andExpect(status().isOk());
+		mockMvc.perform(get(path).header("Authorization", "Bearer invalid"))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void authenticatedReviewReadsRetainCurrentUser() throws Exception {
+		mockMvc.perform(get("/api/v1/reviews/1").cookie(accessCookie()))
+			.andExpect(status().isOk());
+
+		verify(reviewQueryService).getReview(1L, "home-test-user");
+	}
+
+	@Test
+	void reviewWritesRemainProtected() throws Exception {
+		mockMvc.perform(post("/api/v1/contents/17/reviews"))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(delete("/api/v1/reviews/1"))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(post("/api/v1/reviews/1/like"))
 			.andExpect(status().isUnauthorized());
 	}
 
@@ -197,13 +242,34 @@ class HomeControllerTest {
 
 	@Configuration
 	@EnableWebMvc
-	@Import({HomeController.class, HomeQueryService.class, SecurityConfig.class, ExceptionAdvice.class,
+	@Import({HomeController.class, HomeQueryService.class, ContentController.class, ReviewController.class,
+		ReviewLikeController.class, SecurityConfig.class, ExceptionAdvice.class,
 		JwtAuthenticationEntryPoint.class, CookieProvider.class})
 	static class TestConfig {
 
 		@Bean
 		ContentDao contentDao() {
 			return mock(ContentDao.class);
+		}
+
+		@Bean
+		ContentQueryService contentQueryService() {
+			return mock(ContentQueryService.class);
+		}
+
+		@Bean
+		ReviewCommandService reviewCommandService() {
+			return mock(ReviewCommandService.class);
+		}
+
+		@Bean
+		ReviewQueryService reviewQueryService() {
+			return mock(ReviewQueryService.class);
+		}
+
+		@Bean
+		ReviewLikeCommandService reviewLikeCommandService() {
+			return mock(ReviewLikeCommandService.class);
 		}
 
 		@Bean

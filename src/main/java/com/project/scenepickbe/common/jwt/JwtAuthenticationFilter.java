@@ -22,14 +22,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtAuthenticationEntryPoint entryPoint;
-	private final RequestMatcher publicRecommendations;
+	private final RequestMatcher publicReadEndpoints;
 
 	public static final String ACCESS_TOKEN_COOKIE = "access_token";
-
-	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) {
-		return publicRecommendations.matches(request);
-	}
 
 	@Override
 	protected void doFilterInternal(
@@ -53,6 +48,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			} catch (GeneralException e) {
 				SecurityContextHolder.clearContext();
+
+				if (publicReadEndpoints.matches(request)) {
+					filterChain.doFilter(request, response);
+					return;
+				}
 
 				request.setAttribute("JWT_ERROR_REASON", e.getErrorReasonHttpStatus());
 
