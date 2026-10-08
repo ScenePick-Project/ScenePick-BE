@@ -1,5 +1,7 @@
 package com.project.scenepickbe.content.dto.response;
 
+import java.util.List;
+
 import com.project.scenepickbe.content.enums.ContentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,6 +32,22 @@ public class ContentImportResponse {
 
 		@Schema(description = "결과 메시지", example = "이미 등록된 작품입니다. force=true로 다시 가져올 수 있습니다.")
 		String message
+	) {
+	}
+
+	@Schema(name = "Batch", description = "TMDB 다건 연동 결과")
+	public record Batch(
+		@Schema(description = "실제 처리 요청 건수")
+		Integer requestedCount,
+
+		@Schema(description = "성공 또는 중복으로 처리된 작품 수")
+		Integer processedCount,
+
+		@Schema(description = "가져오기에 실패한 작품 수")
+		Integer failedCount,
+
+		@Schema(description = "성공 또는 중복 처리된 작품별 결과")
+		List<Result> resultList
 	) {
 	}
 }

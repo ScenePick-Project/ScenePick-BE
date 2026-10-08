@@ -21,6 +21,14 @@ public class TmdbClient {
 	private final RestClient tmdbRestClient;
 	private final TmdbProperties tmdbProperties;
 
+	public TmdbResponse.PopularContentList getPopularMovies() {
+		return getPopularContents("/movie/popular");
+	}
+
+	public TmdbResponse.PopularContentList getPopularTvs() {
+		return getPopularContents("/tv/popular");
+	}
+
 	public TmdbResponse.TvDetail getTvDetail(Long tmdbId) {
 		try {
 			return tmdbRestClient.get()
@@ -134,6 +142,25 @@ public class TmdbClient {
 			return null;
 		}
 		return tmdbProperties.getImageBaseUrl() + path;
+	}
+
+	private TmdbResponse.PopularContentList getPopularContents(String path) {
+		try {
+			return tmdbRestClient.get()
+				.uri(uriBuilder -> uriBuilder.path(path)
+					.queryParam("language", DEFAULT_LANGUAGE)
+					.queryParam("page", 1)
+					.build())
+				.retrieve()
+				.body(TmdbResponse.PopularContentList.class);
+		} catch (RestClientResponseException ex) {
+			log.error("TMDB call failed: GET {} status={} body={}", path, ex.getRawStatusCode(),
+				ex.getResponseBodyAsString(), ex);
+			throw new GeneralException(ErrorStatus.TMDB_API_FAIL);
+		} catch (RestClientException ex) {
+			log.error("TMDB call failed: GET {}", path, ex);
+			throw new GeneralException(ErrorStatus.TMDB_API_FAIL);
+		}
 	}
 
 }

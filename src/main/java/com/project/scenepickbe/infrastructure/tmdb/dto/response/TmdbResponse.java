@@ -11,6 +11,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class TmdbResponse {
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@Schema(name = "PopularContent", description = "TMDB 인기 작품 정보")
+	public record PopularContent(
+		@Schema(description = "TMDB 작품 ID")
+		Long id
+	) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@Schema(name = "PopularContentList", description = "TMDB 인기 작품 목록")
+	public record PopularContentList(
+		@JsonProperty("results")
+		@Schema(description = "인기 작품 목록")
+		List<PopularContent> contentList
+	) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	@Schema(name = "Genre", description = "TMDB 장르 정보")
 	public record Genre(
 		@Schema(description = "장르 ID")

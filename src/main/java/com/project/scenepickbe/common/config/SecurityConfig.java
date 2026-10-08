@@ -35,8 +35,17 @@ public class SecurityConfig {
 		JwtTokenProvider jwtTokenProvider,
 		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
 	) throws Exception {
-		RequestMatcher publicRecommendations = request -> "GET".equals(request.getMethod())
-			&& request.getRequestURI().equals(request.getContextPath() + "/api/v1/home/recommendations");
+		RequestMatcher publicReadEndpoints = request -> {
+			if (!"GET".equals(request.getMethod())) {
+				return false;
+			}
+
+			String requestPath = request.getRequestURI().substring(request.getContextPath().length());
+			String contentReadPathPattern = "/api/v1/contents/[^/]+(?:/(?:credits|reviews|seasons(?:/[^/]+/(?:episodes|credits))?))?";
+			return requestPath.equals("/api/v1/home/recommendations")
+				|| requestPath.matches(contentReadPathPattern)
+				|| requestPath.matches("/api/v1/reviews/[^/]+");
+		};
 		http
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.csrf(csrf -> csrf.disable())
@@ -51,7 +60,7 @@ public class SecurityConfig {
 			.exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.authorizeHttpRequests(
 				auth -> auth
-					.requestMatchers(publicRecommendations).permitAll()
+					.requestMatchers(publicReadEndpoints).permitAll()
 					.requestMatchers(
 						"/api/v1/user/signup",
 						"/api/v1/user/refresh",
@@ -75,7 +84,7 @@ public class SecurityConfig {
 				.successHandler(oAuth2SuccessHandler)
 			)
 			// JWT 쿠키 필터 추가
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint, publicRecommendations),
+			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtAuthenticationEntryPoint, publicReadEndpoints),
 				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
