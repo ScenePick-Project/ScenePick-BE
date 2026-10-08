@@ -119,7 +119,8 @@ public class ReviewQueryService {
 			reviewVo.getTrackId(),
 			likeCount,
 			isLikedByCurrentUser,
-			reviewVo.getCreatedAt()
+			reviewVo.getCreatedAt(),
+			reviewVo.getRating()
 		);
 	}
 
@@ -172,7 +173,8 @@ public class ReviewQueryService {
 					vo.getTrackId(),
 					likeCount,
 					isLikedByCurrentUser,
-					vo.getCreatedAt()
+					vo.getCreatedAt(),
+					vo.getRating()
 				);
 			})
 			.toList();

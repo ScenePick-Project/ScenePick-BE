@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.scenepickbe.mypage.MyPageDao">
+    <sql id="activeOwner">
+        EXISTS (SELECT 1 FROM USERS OWNER_USER WHERE OWNER_USER.USER_ID = #{userId}
+            AND OWNER_USER.DEL_YN = 'N' AND OWNER_USER.BAN_YN = 'N')
+    </sql>
+    <select id="profile" resultType="com.project.scenepickbe.mypage.MyPageRow">
+        SELECT U.USER_ID, U.USERNAME NICKNAME, U.BIO, U.PROFILE_IMAGE_KEY IMAGE_KEY,
+            (SELECT COUNT(*) FROM USER_FOLLOW F JOIN USERS T ON T.USER_ID = F.TARGET_ID
+                WHERE F.USER_ID = U.USER_ID AND T.DEL_YN = 'N' AND T.BAN_YN = 'N') FOLLOWING_COUNT,
+            (SELECT COUNT(*) FROM USER_FOLLOW F JOIN USERS T ON T.USER_ID = F.USER_ID
+                WHERE F.TARGET_ID = U.USER_ID AND T.DEL_YN = 'N' AND T.BAN_YN = 'N') FOLLOWER_COUNT
+        FROM USERS U WHERE U.USER_ID = #{userId} AND U.DEL_YN = 'N' AND U.BAN_YN = 'N'
+    </select>
+    <update id="updateProfile">
+        UPDATE USERS
+        <set>
+            UPDATED_AT = SYSTIMESTAMP,
+            <if test="request.nicknameProvided">USERNAME = #{request.nickname},</if>
+            <if test="request.bioProvided">BIO = #{request.bio, jdbcType=VARCHAR},</if>
+            <if test="request.imageKeyProvided">PROFILE_IMAGE_KEY = #{request.imageKey, jdbcType=VARCHAR},</if>
+        </set>
+        WHERE USER_ID = #{userId} AND DEL_YN = 'N' AND BAN_YN = 'N'
+    </update>
+    <select id="list" resultType="com.project.scenepickbe.mypage.MyPageRow">
+        SELECT * FROM (
+        <choose>
+            <when test="kind == 'following' or kind == 'followers'">
+                SELECT F.ID, F.CREATED_AT, U.USER_ID, U.USERNAME NICKNAME
+                FROM USER_FOLLOW F JOIN USERS U ON U.USER_ID =
+                <choose><when test="kind == 'following'">F.TARGET_ID</when><otherwise>F.USER_ID</otherwise></choose>
+                WHERE <choose><when test="kind == 'following'">F.USER_ID</when><otherwise>F.TARGET_ID</otherwise></choose> = #{userId}
+                AND U.DEL_YN = 'N' AND U.BAN_YN = 'N'
+            </when>
+            <when test="kind == 'tracks'">
+                SELECT ID, CREATED_AT, TRACK_ID, TRACK_NAME, ARTIST FROM TRACK_BOOKMARK WHERE USER_ID = #{userId}
+            </when>
+            <otherwise>
+                SELECT <choose><when test="kind == 'bookmarks'">B.ID, B.CREATED_AT,</when>
+                    <otherwise>R.REVIEW_ID ID, R.CREATED_AT,</otherwise></choose>
+                    R.REVIEW_ID, R.CONTENT_ID, C.TITLE, R.REVIEW_BODY, R.RATING
+                FROM REVIEW R JOIN CONTENT C ON C.CONTENT_ID = R.CONTENT_ID
+                JOIN USERS U ON U.USER_ID = R.USER_ID
+                <if test="kind == 'bookmarks'">JOIN REVIEW_BOOKMARK B ON B.REVIEW_ID = R.REVIEW_ID</if>
+                WHERE <choose><when test="kind == 'bookmarks'">B.USER_ID</when><otherwise>R.USER_ID</otherwise></choose> = #{userId}
+                    AND R.DEL_YN = 'N' AND U.DEL_YN = 'N' AND U.BAN_YN = 'N'
+            </otherwise>
+        </choose>
+        AND <include refid="activeOwner"/>
+        ) WHERE 1 = 1
+        <if test="createdAt != null">
+            AND (CREATED_AT &lt; #{createdAt} OR (CREATED_AT = #{createdAt} AND ID &lt; #{id}))
+        </if>
+        ORDER BY CREATED_AT DESC, ID DESC FETCH NEXT #{limit} ROWS ONLY
+    </select>
+    <select id="ratings" resultType="com.project.scenepickbe.mypage.MyPageRow">
+        SELECT R.RATING, COUNT(*) COUNT FROM REVIEW R
+        WHERE R.USER_ID = #{userId} AND R.DEL_YN = 'N' AND R.RATING IS NOT NULL
+        AND <include refid="activeOwner"/> GROUP BY R.RATING
+    </select>
+    <update id="rate">
+        UPDATE REVIEW SET RATING = #{rating, jdbcType=NUMERIC}, UPDATED_AT = SYSTIMESTAMP
+        WHERE REVIEW_ID = #{reviewId} AND USER_ID = #{userId} AND DEL_YN = 'N'
+        AND <include refid="activeOwner"/>
+    </update>
+    <insert id="follow">
+        INSERT INTO USER_FOLLOW(USER_ID, TARGET_ID)
+        SELECT #{userId}, USER_ID FROM USERS
+        WHERE USER_ID = #{targetId} AND DEL_YN = 'N' AND BAN_YN = 'N'
+        AND <include refid="activeOwner"/>
+    </insert>
+    <delete id="unfollow">
+        DELETE FROM USER_FOLLOW WHERE USER_ID = #{userId} AND TARGET_ID = #{targetId}
+        AND <include refid="activeOwner"/>
+    </delete>
+    <insert id="bookmarkReview">
+        INSERT INTO REVIEW_BOOKMARK(USER_ID, REVIEW_ID)
+        SELECT #{userId}, R.REVIEW_ID FROM REVIEW R JOIN USERS U ON U.USER_ID = R.USER_ID
+        WHERE R.REVIEW_ID = #{reviewId} AND R.DEL_YN = 'N' AND U.DEL_YN = 'N' AND U.BAN_YN = 'N'
+        AND <include refid="activeOwner"/>
+    </insert>
+    <delete id="unbookmarkReview">
+        DELETE FROM REVIEW_BOOKMARK WHERE USER_ID = #{userId} AND REVIEW_ID = #{reviewId}
+        AND <include refid="activeOwner"/>
+    </delete>
+    <insert id="bookmarkTrack">
+        INSERT INTO TRACK_BOOKMARK(USER_ID, TRACK_ID, TRACK_NAME, ARTIST)
+        SELECT #{userId}, #{track.trackId}, #{track.trackName}, #{track.artist} FROM DUAL
+        WHERE <include refid="activeOwner"/>
+    </insert>
+    <delete id="unbookmarkTrack">
+        DELETE FROM TRACK_BOOKMARK WHERE USER_ID = #{userId} AND TRACK_ID = #{trackId}
+        AND <include refid="activeOwner"/>
+    </delete>
+</mapper>
