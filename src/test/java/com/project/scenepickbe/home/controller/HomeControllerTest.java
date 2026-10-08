@@ -32,6 +32,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.scenepickbe.admin.controller.ContentAdminController;
 import com.project.scenepickbe.common.apiPayload.code.exception.ExceptionAdvice;
 import com.project.scenepickbe.common.config.SecurityConfig;
 import com.project.scenepickbe.common.jwt.CookieProvider;
@@ -41,8 +42,11 @@ import com.project.scenepickbe.common.security.oauth.CustomerOauth2UserService;
 import com.project.scenepickbe.common.security.oauth.OAuth2SuccessHandler;
 import com.project.scenepickbe.content.controller.ContentController;
 import com.project.scenepickbe.content.dao.ContentDao;
+import com.project.scenepickbe.content.dto.response.ContentImportResponse;
 import com.project.scenepickbe.content.enums.ContentType;
+import com.project.scenepickbe.content.service.ContentCommandService;
 import com.project.scenepickbe.content.service.ContentQueryService;
+import com.project.scenepickbe.content.service.RandomContentImportService;
 import com.project.scenepickbe.content.vo.ContentVo;
 import com.project.scenepickbe.home.service.HomeQueryService;
 import com.project.scenepickbe.review.controller.ReviewController;
@@ -72,11 +76,14 @@ class HomeControllerTest {
 	@Autowired
 	private ReviewQueryService reviewQueryService;
 
+	@Autowired
+	private RandomContentImportService randomContentImportService;
+
 	private MockMvc mockMvc;
 
 	@BeforeEach
 	void setUp() {
-		reset(contentDao, reviewQueryService);
+		reset(contentDao, reviewQueryService, randomContentImportService);
 		mockMvc = MockMvcBuilders.webAppContextSetup(context)
 			.addFilters(context.getBean("springSecurityFilterChain", Filter.class))
 			.build();
@@ -210,6 +217,28 @@ class HomeControllerTest {
 			.andExpect(status().isUnauthorized());
 	}
 
+	@Test
+	void randomTmdbImportRemainsProtectedAndAcceptsAuthenticatedRequests() throws Exception {
+		ContentImportResponse.Batch result = new ContentImportResponse.Batch(1, 1, 0,
+			List.of(new ContentImportResponse.Result(
+				new ContentImportResponse.Import(17L, 100L, ContentType.MOVIE, true), "가져왔습니다.")));
+		when(randomContentImportService.importRandomPopularContents(1)).thenReturn(result);
+
+		mockMvc.perform(post("/api/v1/admin/contents/import/tmdb/random").param("count", "1"))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(post("/api/v1/admin/contents/import/tmdb/random").param("count", "1")
+			.cookie(accessCookie()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.result.requestedCount").value(1))
+			.andExpect(jsonPath("$.result.processedCount").value(1));
+		mockMvc.perform(post("/api/v1/admin/contents/import/tmdb/random").param("count", "21")
+			.cookie(accessCookie()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("COMMON400"));
+
+		verify(randomContentImportService).importRandomPopularContents(1);
+	}
+
 	@ParameterizedTest
 	@ValueSource(strings = {"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
 	void otherMethodsRemainProtected(String method) throws Exception {
@@ -242,7 +271,8 @@ class HomeControllerTest {
 
 	@Configuration
 	@EnableWebMvc
-	@Import({HomeController.class, HomeQueryService.class, ContentController.class, ReviewController.class,
+	@Import({HomeController.class, HomeQueryService.class, ContentController.class, ContentAdminController.class,
+		ReviewController.class,
 		ReviewLikeController.class, SecurityConfig.class, ExceptionAdvice.class,
 		JwtAuthenticationEntryPoint.class, CookieProvider.class})
 	static class TestConfig {
@@ -255,6 +285,16 @@ class HomeControllerTest {
 		@Bean
 		ContentQueryService contentQueryService() {
 			return mock(ContentQueryService.class);
+		}
+
+		@Bean
+		ContentCommandService contentCommandService() {
+			return mock(ContentCommandService.class);
+		}
+
+		@Bean
+		RandomContentImportService randomContentImportService() {
+			return mock(RandomContentImportService.class);
 		}
 
 		@Bean
