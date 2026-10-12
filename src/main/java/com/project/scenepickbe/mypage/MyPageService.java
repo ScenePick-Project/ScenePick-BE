@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class MyPageService {
 	private final MyPageDao dao;
 	private final ProfileImageService images;
+	private final com.project.scenepickbe.notification.NotificationService notifications;
 
 	private MyPageRow owner(String userId) {
 		if (userId == null) throw new GeneralException(ErrorStatus._UNAUTHORIZED);
@@ -76,11 +77,13 @@ public class MyPageService {
 		com.project.scenepickbe.review.dto.request.ReviewRequest.validateRating(rating);
 		if (dao.rate(userId, reviewId, rating) == 0) throw new GeneralException(ErrorStatus.REVIEW_NOT_FOUND);
 	}
-	private void add(IntSupplier insert) {
+	private boolean add(IntSupplier insert) {
 		try {
 			if (insert.getAsInt() == 0) throw new GeneralException(ErrorStatus._BAD_REQUEST);
+			return true;
 		} catch (DuplicateKeyException duplicate) {
 			// 동일 관계의 재저장은 멱등 요청입니다. DB 유일 제약이 동시 요청도 보호합니다.
+			return false;
 		}
 	}
 	@Transactional
@@ -92,7 +95,8 @@ public class MyPageService {
 	@Transactional
 	public void bookmarkReview(String userId, long reviewId, boolean remove) {
 		owner(userId);
-		if (remove) dao.unbookmarkReview(userId, reviewId); else add(() -> dao.bookmarkReview(userId, reviewId));
+		if (remove) dao.unbookmarkReview(userId, reviewId);
+		else if (add(() -> dao.bookmarkReview(userId, reviewId))) notifications.added(userId, reviewId, "REVIEW_BOOKMARK");
 	}
 	@Transactional
 	public void bookmarkTrack(String userId, MyPageRequest.Track track) {

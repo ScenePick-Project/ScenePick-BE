@@ -19,6 +19,7 @@ public class ReviewLikeCommandService {
 
 	private final ReviewLikeDao reviewLikeDao;
 	private final ReviewDao reviewDao;
+	private final com.project.scenepickbe.notification.NotificationService notifications;
 
 	/**
 	 * 리뷰 좋아요 토글 (좋아요 추가/취소)
@@ -47,7 +48,13 @@ public class ReviewLikeCommandService {
 			ReviewLikeVo reviewLikeVo = new ReviewLikeVo();
 			reviewLikeVo.setUserId(userId);
 			reviewLikeVo.setReviewId(reviewId);
-			reviewLikeDao.insertReviewLike(reviewLikeVo);
+			boolean inserted = false;
+			try {
+				inserted = reviewLikeDao.insertReviewLike(reviewLikeVo) > 0;
+			} catch (org.springframework.dao.DuplicateKeyException duplicate) {
+				// A concurrent add won the unique relation; do not send another notification.
+			}
+			if (inserted) notifications.added(userId, reviewId, "REVIEW_LIKE");
 			isLiked = true;
 		}
 

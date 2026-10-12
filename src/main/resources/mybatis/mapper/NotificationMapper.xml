@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.scenepickbe.notification.NotificationDao">
+    <insert id="insert">
+        INSERT INTO REVIEW_NOTIFICATION(USER_ID, ACTOR_ID, REVIEW_ID, TYPE)
+        SELECT R.USER_ID, #{actorId}, R.REVIEW_ID, #{type} FROM REVIEW R
+        JOIN USERS U ON U.USER_ID = R.USER_ID
+        JOIN USERS A ON A.USER_ID = #{actorId}
+        WHERE R.REVIEW_ID = #{reviewId} AND R.USER_ID != #{actorId} AND R.DEL_YN = 'N'
+        AND U.DEL_YN = 'N' AND U.BAN_YN = 'N' AND A.DEL_YN = 'N' AND A.BAN_YN = 'N'
+    </insert>
+    <select id="list" resultType="com.project.scenepickbe.notification.NotificationResponse$Item">
+        SELECT * FROM (
+            SELECT N.ID NOTIFICATION_ID, N.TYPE, R.REVIEW_ID, R.CONTENT_ID,
+                COALESCE(A.USERNAME, '탈퇴한 사용자') ACTOR_NICKNAME, N.CREATED_AT, N.READ_AT
+            FROM REVIEW_NOTIFICATION N
+            LEFT JOIN REVIEW R ON R.REVIEW_ID = N.REVIEW_ID AND R.DEL_YN = 'N'
+            LEFT JOIN USERS A ON A.USER_ID = N.ACTOR_ID AND A.DEL_YN = 'N' AND A.BAN_YN = 'N'
+            WHERE N.USER_ID = #{userId}
+            <if test="createdAt != null">
+                AND (N.CREATED_AT &lt; #{createdAt} OR (N.CREATED_AT = #{createdAt} AND N.ID &lt; #{id}))
+            </if>
+            ORDER BY N.CREATED_AT DESC, N.ID DESC
+        ) WHERE ROWNUM &lt;= #{limit}
+    </select>
+    <select id="unreadCount" resultType="long">
+        SELECT COUNT(*) FROM REVIEW_NOTIFICATION WHERE USER_ID = #{userId} AND READ_AT IS NULL
+    </select>
+    <update id="read">
+        UPDATE REVIEW_NOTIFICATION SET READ_AT = COALESCE(READ_AT, SYSTIMESTAMP)
+        WHERE USER_ID = #{userId} AND ID = #{id}
+    </update>
+</mapper>

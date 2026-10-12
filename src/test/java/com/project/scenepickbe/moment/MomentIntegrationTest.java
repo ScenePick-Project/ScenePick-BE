@@ -347,6 +347,10 @@ class MomentIntegrationTest {
 	@Import(ExceptionAdvice.class)
 	static class TestConfig implements WebMvcConfigurer {
 		@Bean
+		com.project.scenepickbe.notification.NotificationService notifications() {
+			return org.mockito.Mockito.mock(com.project.scenepickbe.notification.NotificationService.class);
+		}
+		@Bean
 		DataSource dataSource() {
 			return new DriverManagerDataSource(ORACLE.getJdbcUrl(), ORACLE.getUsername(), ORACLE.getPassword());
 		}
