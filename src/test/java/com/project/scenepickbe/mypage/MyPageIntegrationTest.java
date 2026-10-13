@@ -162,6 +162,53 @@ class MyPageIntegrationTest {
 		mvc.perform(as(get("/api/v1/me/profile"),owner)).andExpect(jsonPath("$.result.followingCount").value(0));
 		mvc.perform(as(delete("/api/v1/me/following/{id}",other),owner)).andExpect(status().isOk());
 	}
+	@Test void notificationsArePrivateIdempotentAndSurviveDeletedReviews() throws Exception {
+		long reviewId = review(owner, "4");
+		mvc.perform(get("/api/v1/me/notifications")).andExpect(status().isUnauthorized());
+		mvc.perform(as(put("/api/v1/me/review-bookmarks/{id}", reviewId), owner)).andExpect(status().isOk());
+		mvc.perform(as(get("/api/v1/me/notifications/unread-count"), owner)).andExpect(jsonPath("$.result.count").value(0));
+		for (int i = 0; i < 2; i++) mvc.perform(as(put("/api/v1/me/review-bookmarks/{id}", reviewId), other)).andExpect(status().isOk());
+		mvc.perform(as(get("/api/v1/me/notifications/unread-count"), owner)).andExpect(jsonPath("$.result.count").value(1));
+		String response = mvc.perform(as(get("/api/v1/me/notifications"), owner))
+			.andExpect(jsonPath("$.result.items[0].type").value("REVIEW_BOOKMARK"))
+			.andExpect(jsonPath("$.result.items[0].reviewId").value(reviewId)).andReturn().getResponse().getContentAsString();
+		long notificationId = json.readTree(response).path("result").path("items").get(0).path("notificationId").asLong();
+		mvc.perform(as(patch("/api/v1/me/notifications/{id}/read", notificationId), other)).andExpect(status().isForbidden());
+		for (int i = 0; i < 2; i++) mvc.perform(as(patch("/api/v1/me/notifications/{id}/read", notificationId), owner)).andExpect(status().isOk());
+		mvc.perform(as(get("/api/v1/me/notifications/unread-count"), owner)).andExpect(jsonPath("$.result.count").value(0));
+		mvc.perform(as(delete("/api/v1/reviews/{id}", reviewId), owner)).andExpect(status().isOk());
+		mvc.perform(as(get("/api/v1/me/notifications"), owner)).andExpect(jsonPath("$.result.items[0].reviewId").doesNotExist());
+		mvc.perform(as(get("/api/v1/me/notifications"), other)).andExpect(jsonPath("$.result.items").isEmpty());
+		mvc.perform(as(get("/api/v1/me/notifications?cursorId=1"), owner)).andExpect(status().isBadRequest());
+	}
+	@Test void likeNotificationSharesTransactionAndCancellationDoesNotNotify() throws Exception {
+		long reviewId = review(owner, "4");
+		var command = context.getBean(com.project.scenepickbe.review.service.ReviewLikeCommandService.class);
+		var transaction = new org.springframework.transaction.support.TransactionTemplate(
+			context.getBean(org.springframework.transaction.PlatformTransactionManager.class));
+		transaction.executeWithoutResult(status -> {
+			command.toggleReviewLike(reviewId, other);
+			assertThat(db.queryForObject("SELECT COUNT(*) FROM REVIEW_NOTIFICATION WHERE USER_ID = ?", Long.class, owner)).isEqualTo(1);
+			status.setRollbackOnly();
+		});
+		assertThat(db.queryForObject("SELECT COUNT(*) FROM REVIEW_NOTIFICATION WHERE USER_ID = ?", Long.class, owner)).isZero();
+		assertThat(db.queryForObject("SELECT COUNT(*) FROM REVIEW_LIKE WHERE REVIEW_ID = ?", Long.class, reviewId)).isZero();
+		for (int i = 0; i < 2; i++) mvc.perform(as(post("/api/v1/reviews/{id}/like", reviewId), other)).andExpect(status().isOk());
+		mvc.perform(as(get("/api/v1/me/notifications/unread-count"), owner)).andExpect(jsonPath("$.result.count").value(1));
+	}
+	@Test void concurrentBookmarkAddsProduceOneNotification() throws Exception {
+		long reviewId = review(owner, "4");
+		var service = context.getBean(MyPageService.class);
+		var start = new java.util.concurrent.CountDownLatch(1);
+		try (var executor = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+			var first = executor.submit(() -> { start.await(); service.bookmarkReview(other, reviewId, false); return null; });
+			var second = executor.submit(() -> { start.await(); service.bookmarkReview(other, reviewId, false); return null; });
+			start.countDown();
+			first.get(15, java.util.concurrent.TimeUnit.SECONDS);
+			second.get(15, java.util.concurrent.TimeUnit.SECONDS);
+		}
+		mvc.perform(as(get("/api/v1/me/notifications/unread-count"), owner)).andExpect(jsonPath("$.result.count").value(1));
+	}
 	@Test void bookmarksAreSeparatePrivateIdempotentAndRemovable() throws Exception {
 		long id=review(other,"3.5");
 		for(int i=0;i<2;i++) mvc.perform(as(put("/api/v1/me/review-bookmarks/{id}",id),owner)).andExpect(status().isOk());
@@ -186,8 +233,8 @@ class MyPageIntegrationTest {
 	@Configuration
 	@EnableWebMvc
 	@EnableTransactionManagement
-	@ComponentScan(basePackages = {"com.project.scenepickbe.mypage", "com.project.scenepickbe.review"}, excludeFilters = @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE, classes = ProfileImageService.class))
-	@MapperScan({"com.project.scenepickbe.mypage", "com.project.scenepickbe.review.dao"})
+	@ComponentScan(basePackages = {"com.project.scenepickbe.mypage", "com.project.scenepickbe.review", "com.project.scenepickbe.notification"}, excludeFilters = @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE, classes = ProfileImageService.class))
+	@MapperScan({"com.project.scenepickbe.mypage", "com.project.scenepickbe.review.dao", "com.project.scenepickbe.notification"})
 	@Import({ExceptionAdvice.class, SecurityConfig.class, JwtAuthenticationEntryPoint.class, CookieProvider.class})
 	static class TestConfig implements WebMvcConfigurer {
 		@Bean
@@ -207,7 +254,7 @@ class MyPageIntegrationTest {
 			factory.setDataSource(dataSource);
 			var resolver = new PathMatchingResourcePatternResolver();
 			factory.setTypeAliasesPackage("com.project.scenepickbe.review.vo");
-			factory.setMapperLocations(resolver.getResource("classpath:mybatis/mapper/MyPageMapper.xml"),
+			factory.setMapperLocations(resolver.getResource("classpath:mybatis/mapper/NotificationMapper.xml"), resolver.getResource("classpath:mybatis/mapper/MyPageMapper.xml"),
 				resolver.getResource("classpath:mybatis/mapper/ReviewMapper.xml"),
 				resolver.getResource("classpath:mybatis/mapper/ReviewLikeMapper.xml"));
 			org.apache.ibatis.session.Configuration configuration = new org.apache.ibatis.session.Configuration();
