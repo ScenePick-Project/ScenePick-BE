@@ -1,5 +1,8 @@
 package com.project.scenepickbe.infrastructure.tmdb;
 
+import java.time.LocalDate;
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -27,6 +30,27 @@ public class TmdbClient {
 
 	public TmdbResponse.PopularContentList getPopularTvs() {
 		return getPopularContents("/tv/popular");
+	}
+
+	public TmdbResponse.PopularContentList getRecentMovies(LocalDate fromDate, LocalDate toDate) {
+		return getContents("/discover/movie", Map.of(
+			"primary_release_date.gte", fromDate,
+			"primary_release_date.lte", toDate,
+			"sort_by", "primary_release_date.desc",
+			"include_adult", false,
+			"include_video", false));
+	}
+
+	public TmdbResponse.PopularContentList getRecentlyAiredTvs(LocalDate fromDate, LocalDate toDate) {
+		// 첫 방영일의 하한을 두면 기존 시리즈의 최근 방영분을 놓친다.
+		return getContents("/discover/tv", Map.of(
+			"air_date.gte", fromDate,
+			"air_date.lte", toDate,
+			"first_air_date.lte", toDate,
+			"include_null_first_air_dates", false,
+			"sort_by", "popularity.desc",
+			"include_adult", false,
+			"timezone", "Asia/Seoul"));
 	}
 
 	public TmdbResponse.TvDetail getTvDetail(Long tmdbId) {
@@ -145,12 +169,17 @@ public class TmdbClient {
 	}
 
 	private TmdbResponse.PopularContentList getPopularContents(String path) {
+		return getContents(path, Map.of());
+	}
+
+	private TmdbResponse.PopularContentList getContents(String path, Map<String, Object> filters) {
 		try {
 			return tmdbRestClient.get()
-				.uri(uriBuilder -> uriBuilder.path(path)
-					.queryParam("language", DEFAULT_LANGUAGE)
-					.queryParam("page", 1)
-					.build())
+				.uri(uriBuilder -> {
+					uriBuilder.path(path).queryParam("language", DEFAULT_LANGUAGE).queryParam("page", 1);
+					filters.forEach((name, value) -> uriBuilder.queryParam(name, value));
+					return uriBuilder.build();
+				})
 				.retrieve()
 				.body(TmdbResponse.PopularContentList.class);
 		} catch (RestClientResponseException ex) {
