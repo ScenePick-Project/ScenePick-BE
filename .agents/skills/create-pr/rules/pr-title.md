@@ -1,29 +1,19 @@
 ---
 title: PR Title Format
 impact: HIGH
-tags: pr, title, natural-language
+tags: pr, title
 ---
 
-**Rule**: Use natural, descriptive language. No conventional commit prefixes.
+Use `<emoji> [<type>] <summary>`. Select the type for the delivered change and the matching emoji from RULES.md.
 
-### Incorrect
+Examples:
 
-```
-feat: add user authentication
-fix: resolve login timeout
-chore: update dependencies
-```
-
-### Correct
-
-```
-Add user authentication
-Fix login timeout on expired sessions
-Update React and TypeScript dependencies
+```text
+✨ [feat] 리뷰 알림 추가
+🐛 [fix] 리뷰 커서 조회 오류 수정
+⚙️ [setting] Oracle MCP 검증 흐름 추가 및 TMDB 수집 정책 개선
 ```
 
-### Guidelines
+Keep the summary concise and specific to the final scope. Normalize issue titles to this format instead of copying a different prefix.
 
-- Clear and specific to the changes
-- Concise but informative
-- Sentence case (capitalise first word only)
+Do not add `[draft]`, `[Draft]`, or `Draft:` to the title. Draft is a GitHub PR state set with `--draft`, not a title prefix. Preserve any separately required blocked reporting.
