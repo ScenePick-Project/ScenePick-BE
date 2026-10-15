@@ -38,11 +38,21 @@ this repository's PR template.
    - review points
    - evidence
    - whether the PR must be draft
-7. Render the PR body from `.github/pull_request_template.md`.
-8. Push the current branch to the remote, using `-u` if needed.
-9. Create or update the PR with `gh`, using `--draft` when draft state is
+7. If the caller supplies an Oracle MCP report, follow
+   [SQL evidence handoff](../issue-to-draft-pr/references/oracle-mcp-validation.md#evidence-handoff-to-create-pr).
+   Verify its run/issue/branch, fixed base SHA, final HEAD and gate decision.
+   A missing/stale report returns to the caller for refresh before push; do not
+   silently omit it. This handoff applies only when requested by the caller,
+   not to unrelated standalone PRs or leftover files in `build/`.
+8. Render the PR body from `.github/pull_request_template.md`.
+9. Push the current branch to the remote, using `-u` if needed.
+10. Create or update the PR with `gh`, using `--draft` when draft state is
    required.
-10. Return the PR URL and whether the PR is draft.
+11. Read back the PR's body, base, head commit and draft state (for example
+    `gh pr view <url> --json url,body,baseRefName,headRefOid,isDraft`).
+    Confirm they match the requested state and supplied evidence; fix a body
+    omission within the approved PR action before reporting success.
+12. Return the PR URL and whether the PR is draft.
 
 ## Body rules
 
@@ -52,8 +62,17 @@ this repository's PR template.
 - Do not leave raw template placeholder text in the final PR body.
 - Check only the task type boxes that are actually true.
 - Check self-checklist items only when they are already true.
-- If evidence artifacts exist, reference them. Otherwise summarize the executed
-  validation commands and results in the Evidence section.
+- Reference relevant evidence artifacts from the current run. Otherwise summarize
+  the executed validation commands and results in the Evidence section. Do not
+  collect unrelated or stale artifacts merely because they exist.
+- For a supplied Oracle MCP report, copy its applicability/gate status, measured
+  results, interpretation, actual test results and limitations into Evidence.
+  Include a before/after comparison table only for measured performance improvements.
+  Use `N/A + reason` for unavailable metrics. Do not publish example numbers or
+  present advisory gaps as passing measurements. A local `build/` path alone
+  cannot provide evidence to GitHub reviewers; include the relevant content.
+- Keep existing required quality gates and approval rules. Advisory MCP
+  unavailability alone is not a new blocker, but unmet required criteria are.
 
 ## Linked issue rules
 
@@ -68,9 +87,11 @@ context, stop and ask for it before creating the PR.
 
 ## Title rules
 
-- Prefer the issue title when it accurately matches the implemented change.
-- Otherwise write a concise descriptive title for the delivered change.
-- Do not use conventional-commit prefixes in the PR title.
+- Use `<emoji> [<type>] <summary>`, for example `✨ [feat] 리뷰 알림 추가`.
+- Choose the type for the delivered change and its matching emoji from RULES.md.
+- Reuse the issue summary only when it matches the final scope; normalize its prefix to this format.
+- Do not add `[draft]`, `[Draft]`, or `Draft:` to the title. Set draft state with `--draft`.
+- See [PR title format](rules/pr-title.md) for examples. Existing blocked-reporting requirements still apply.
 
 ## GitHub execution rules
 
@@ -90,5 +111,6 @@ Stop instead of pushing or creating a PR when any of these happen:
 - remote mutation was not approved
 - there are no committed changes to open
 - the linked issue number is missing
+- caller-supplied SQL evidence is missing/stale or required criteria are unmet
 - the repo template cannot be followed correctly
 - the requested draft or base-branch state cannot be created accurately

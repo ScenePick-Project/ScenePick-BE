@@ -106,8 +106,8 @@ public class ContentCommandService {
 		if (contentType == ContentType.TV) {
 			TmdbResponse.TvDetail detail = tmdbClient.getTvDetail(tmdbId);
 			contentVo.setTitle(detail.name());
-			contentVo.setSynopsis(null);
-			contentVo.setPosterImageUrl(null);
+			contentVo.setSynopsis(detail.overview());
+			contentVo.setPosterImageUrl(tmdbClient.toImageUrl(detail.posterPath()));
 		} else {
 			TmdbResponse.MovieDetail detail = tmdbClient.getMovieDetail(tmdbId);
 			contentVo.setTitle(detail.title());
