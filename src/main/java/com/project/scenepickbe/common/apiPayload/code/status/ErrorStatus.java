@@ -42,6 +42,9 @@ public enum ErrorStatus implements BaseErrorCode {
 	CURSOR_INVALID(HttpStatus.BAD_REQUEST, "PAGING4001", "커서 파라미터 구성이 올바르지 않습니다."),
 	INVALID_PAGE_SIZE(HttpStatus.BAD_REQUEST, "PAGING4002", "페이지 크기는 1보다 커야 합니다."),
 
+	// Chat
+	CHAT_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "CHAT4291", "메시지는 1초에 한 번 전송할 수 있습니다."),
+
 	// Moment
 	MOMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "MOMENT4001", "모먼트가 존재하지 않습니다."),
 

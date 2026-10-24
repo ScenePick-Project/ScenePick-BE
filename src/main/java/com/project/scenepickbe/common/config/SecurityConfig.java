@@ -43,6 +43,8 @@ public class SecurityConfig {
 			String requestPath = request.getRequestURI().substring(request.getContextPath().length());
 			String contentReadPathPattern = "/api/v1/contents/[^/]+(?:/(?:credits|reviews|seasons(?:/[^/]+/(?:episodes|credits))?))?";
 			return requestPath.equals("/api/v1/home/recommendations")
+				|| requestPath.equals("/ws/chat")
+				|| requestPath.matches("/api/v1/contents/[1-9][0-9]*/chat/messages")
 				|| requestPath.matches(contentReadPathPattern)
 				|| requestPath.matches("/api/v1/reviews/[^/]+");
 		};
