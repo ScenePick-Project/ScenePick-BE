@@ -1,6 +1,7 @@
 package com.project.scenepickbe.chat;
 
 import java.util.regex.Pattern;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,6 +16,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MimeTypeUtils;
 
 import com.project.scenepickbe.common.apiPayload.code.exception.GeneralException;
 import com.project.scenepickbe.common.apiPayload.code.status.ErrorStatus;
@@ -42,6 +44,24 @@ public class ChatStompInterceptor implements ExecutorChannelInterceptor {
 		if (headers == null || headers.getCommand() == null) {
 			return message;
 		}
+		try {
+			validate(headers);
+		} catch (RuntimeException exception) {
+			String code = exception instanceof GeneralException general
+				? general.getErrorReasonHttpStatus().getCode() : "COMMON500";
+			var error = StompHeaderAccessor.create(StompCommand.ERROR);
+			error.setSessionId(headers.getSessionId());
+			error.setMessage(code);
+			error.setContentType(MimeTypeUtils.TEXT_PLAIN);
+			// 순서 보존 채널은 예외를 흡수하므로 해당 연결에 ERROR를 직접 보내고 처리를 중단한다.
+			outbound.getObject().send(MessageBuilder.createMessage(code.getBytes(StandardCharsets.UTF_8),
+				error.getMessageHeaders()));
+			return null;
+		}
+		return message;
+	}
+
+	private void validate(StompHeaderAccessor headers) {
 		switch (headers.getCommand()) {
 			case CONNECT, STOMP -> {
 				String authorization = headers.getFirstNativeHeader("Authorization");
@@ -70,7 +90,6 @@ public class ChatStompInterceptor implements ExecutorChannelInterceptor {
 			case UNSUBSCRIBE, DISCONNECT -> { }
 			default -> throw new GeneralException(ErrorStatus._FORBIDDEN);
 		}
-		return message;
 	}
 
 	private long contentId(Pattern pattern, String destination) {

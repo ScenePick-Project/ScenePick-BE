@@ -27,6 +27,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -83,6 +84,7 @@ class ChatIntegrationTest {
 	@Autowired DataSource dataSource;
 	@Autowired JwtTokenProvider tokens;
 	@Autowired ObjectMapper json;
+	@Autowired SqlSessionFactory sqlSessions;
 	@LocalServerPort int port;
 	private JdbcTemplate db;
 	private long contentId;
@@ -250,6 +252,27 @@ class ChatIntegrationTest {
 	}
 
 	@Test
+	void rateLimitUsesDatabaseTimeAcrossSessionTimeZones() throws Exception {
+		for (String zone : List.of("+09:00", "-07:00")) {
+			try (var session = sqlSessions.openSession(); var statement = session.getConnection().createStatement()) {
+				statement.execute("ALTER SESSION SET TIME_ZONE = '" + zone + "'");
+				var dao = session.getMapper(ChatDao.class);
+				var message = new ChatInsert(contentId, userId, "시간대 검증");
+				dao.insert(message);
+				assertThat(dao.sentRecently(userId)).as("최근 전송: %s", zone).isTrue();
+				try (var update = session.getConnection().prepareStatement(
+					"UPDATE CHAT_MESSAGE SET CREATED_AT = CAST(SYSTIMESTAMP AS TIMESTAMP) - INTERVAL '2' SECOND WHERE MESSAGE_ID = ?")) {
+					update.setLong(1, message.getMessageId());
+					update.executeUpdate();
+				}
+				session.clearCache();
+				assertThat(dao.sentRecently(userId)).as("전송 제한 해제: %s", zone).isFalse();
+				session.rollback();
+			}
+		}
+	}
+
+	@Test
 	void concurrentSendersReceiveCommittedMessagesInIdOrder() throws Exception {
 		String secondUser = userId + "-2";
 		db.update("INSERT INTO USERS(USER_ID,EMAIL,USERNAME) VALUES(?,?,?)", secondUser,
@@ -366,7 +389,7 @@ class ChatIntegrationTest {
 
 	@Configuration
 	@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
-		FlywayAutoConfiguration.class})
+		FlywayAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
 	@EnableTransactionManagement
 	@ComponentScan(basePackages = "com.project.scenepickbe.chat")
 	@MapperScan(basePackages = "com.project.scenepickbe.chat", annotationClass = Mapper.class)

@@ -13,7 +13,7 @@
     </select>
     <select id="sentRecently" resultType="boolean">
         SELECT COUNT(*) FROM CHAT_MESSAGE
-        WHERE USER_ID = #{userId} AND CREATED_AT &gt; SYSTIMESTAMP - INTERVAL '1' SECOND
+        WHERE USER_ID = #{userId} AND CREATED_AT &gt; CAST(SYSTIMESTAMP AS TIMESTAMP) - INTERVAL '1' SECOND
         AND ROWNUM = 1
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="messageId" keyColumn="MESSAGE_ID">
