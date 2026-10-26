@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.scenepickbe.chat.ChatDao">
+    <select id="contentExists" resultType="boolean">
+        SELECT COUNT(*) FROM CONTENT WHERE CONTENT_ID = #{contentId}
+    </select>
+    <select id="lockContent" resultType="long">
+        SELECT CONTENT_ID FROM CONTENT WHERE CONTENT_ID = #{contentId} FOR UPDATE WAIT 5
+    </select>
+    <select id="lockActiveUser" resultType="string">
+        SELECT USER_ID FROM USERS WHERE USER_ID = #{userId} AND DEL_YN = 'N' AND BAN_YN = 'N'
+        FOR UPDATE WAIT 5
+    </select>
+    <select id="sentRecently" resultType="boolean">
+        SELECT COUNT(*) FROM CHAT_MESSAGE
+        WHERE USER_ID = #{userId} AND CREATED_AT &gt; CAST(SYSTIMESTAMP AS TIMESTAMP) - INTERVAL '1' SECOND
+        AND ROWNUM = 1
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="messageId" keyColumn="MESSAGE_ID">
+        INSERT INTO CHAT_MESSAGE(CONTENT_ID, USER_ID, BODY) VALUES(#{contentId}, #{userId}, #{body})
+    </insert>
+    <sql id="messageColumns">
+        M.MESSAGE_ID, M.CONTENT_ID, U.USER_ID, COALESCE(U.USERNAME, '탈퇴한 사용자') NICKNAME,
+        U.PROFILE_IMAGE_KEY IMAGE_KEY, M.BODY, M.CREATED_AT
+    </sql>
+    <sql id="messageFrom">
+        FROM CHAT_MESSAGE M
+        LEFT JOIN USERS U ON U.USER_ID = M.USER_ID AND U.DEL_YN = 'N' AND U.BAN_YN = 'N'
+    </sql>
+    <select id="find" resultType="com.project.scenepickbe.chat.ChatMessage">
+        SELECT <include refid="messageColumns"/>
+        <include refid="messageFrom"/> WHERE M.MESSAGE_ID = #{messageId}
+    </select>
+    <select id="list" resultType="com.project.scenepickbe.chat.ChatMessage">
+        SELECT * FROM (
+            SELECT <include refid="messageColumns"/>
+            <include refid="messageFrom"/>
+            WHERE M.CONTENT_ID = #{contentId}
+            <if test="beforeId != null">AND M.MESSAGE_ID &lt; #{beforeId}</if>
+            <if test="afterId != null">AND M.MESSAGE_ID &gt; #{afterId}</if>
+            ORDER BY M.MESSAGE_ID <choose><when test="afterId != null">ASC</when><otherwise>DESC</otherwise></choose>
+        ) WHERE ROWNUM &lt;= #{limit}
+    </select>
+</mapper>
