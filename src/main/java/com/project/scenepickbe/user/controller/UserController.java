@@ -29,6 +29,18 @@ public class UserController {
 	private final UserQueryService userQueryService;
 	private final CookieProvider cookieProvider;
 
+	@Operation(summary = "비밀번호 변경", description = "현재 비밀번호 확인 후 변경하고 인증 쿠키 및 모든 refresh token을 폐기합니다. "
+		+ "기존 access token은 만료까지 유효합니다. 소셜 전용 회원은 변경할 수 없습니다.")
+	@PatchMapping(value = "/password", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ApiResponse<?>> changePassword(Authentication authentication,
+		@RequestBody @Valid UserRequest.PasswordChange request) {
+		userCommandService.changePassword(authentication.getName(), request);
+		return ResponseEntity.ok()
+			.header(HttpHeaders.SET_COOKIE, cookieProvider.deleteAccessCookie().toString())
+			.header(HttpHeaders.SET_COOKIE, cookieProvider.deleteRefreshCookie().toString())
+			.body(ApiResponse.onSuccess(null));
+	}
+
 	@Operation(summary = "회원가입", description = "회원가입을 합니다.")
 	@DocSuccess(UserResponse.UserSignUp.class)
 	@PostMapping(value = "/signup", produces = MediaType.APPLICATION_JSON_VALUE)

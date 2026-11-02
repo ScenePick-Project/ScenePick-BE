@@ -8,6 +8,8 @@ import java.util.Date;
 @Mapper
 public interface RefreshTokenDao {
 
+	void revokeAllUserRefreshTokens(@Param("userId") String userId);
+
 	// REFRESH TOKEN 저장
 	void insertUserRefreshToken(@Param("userId") String userId, @Param("jti") String jti, @Param("expiresAt") Date expiresAt);
 
