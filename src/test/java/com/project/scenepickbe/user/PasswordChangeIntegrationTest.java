@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -287,13 +288,17 @@ class PasswordChangeIntegrationTest {
 	@Import({UserController.class, UserCommandService.class, UserQueryService.class, SecurityConfig.class,
 		ExceptionAdvice.class, JwtAuthenticationEntryPoint.class, CookieProvider.class})
 	static class TestConfig {
+
 		@Bean
 		DataSource dataSource() {
 			return new DriverManagerDataSource(ORACLE.getJdbcUrl(), ORACLE.getUsername(), ORACLE.getPassword());
 		}
-		@Bean(initMethod = "migrate") Flyway flyway(DataSource dataSource) {
+
+		@Bean(initMethod = "migrate")
+		Flyway flyway(DataSource dataSource) {
 			return Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 		}
+
 		@Bean
 		@DependsOn("flyway")
 		SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
@@ -308,31 +313,38 @@ class PasswordChangeIntegrationTest {
 			factory.setConfiguration(configuration);
 			return factory.getObject();
 		}
+
 		@Bean
 		DataSourceTransactionManager transactionManager(DataSource dataSource) {
 			return new DataSourceTransactionManager(dataSource);
 		}
+
 		@Bean
 		ObjectMapper objectMapper() {
 			return new ObjectMapper();
 		}
+
 		@Bean
 		ModelMapper modelMapper() {
 			return new ModelMapper();
 		}
+
 		@Bean
 		JwtTokenProvider jwtTokenProvider() {
 			return new JwtTokenProvider(Base64.getEncoder().encodeToString(
-				"password-test-only-signing-key-not-production".getBytes(java.nio.charset.StandardCharsets.UTF_8)), 5, 1);
+				"password-test-only-signing-key-not-production".getBytes(StandardCharsets.UTF_8)), 5, 1);
 		}
+
 		@Bean
 		CustomerOauth2UserService oauth2UserService(UserDao dao) {
 			return new CustomerOauth2UserService(dao);
 		}
+
 		@Bean
 		OAuth2SuccessHandler oauth2SuccessHandler(JwtTokenProvider tokens, CookieProvider cookies) {
 			return new OAuth2SuccessHandler(tokens, cookies);
 		}
+
 		@Bean
 		ClientRegistrationRepository clientRegistrationRepository() {
 			return new InMemoryClientRegistrationRepository(ClientRegistration.withRegistrationId("test")
