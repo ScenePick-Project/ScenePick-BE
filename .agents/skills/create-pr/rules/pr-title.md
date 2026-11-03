@@ -16,4 +16,7 @@ Examples:
 
 Keep the summary concise and specific to the final scope. Normalize issue titles to this format instead of copying a different prefix.
 
-Do not add `[draft]`, `[Draft]`, or `Draft:` to the title. Draft is a GitHub PR state set with `--draft`, not a title prefix. Preserve any separately required blocked reporting.
+Do not add status prefixes such as `[blocked]`, `[draft]`, `[Draft]`, or `Draft:`.
+Use GitHub draft state and the existing issue status label (for example,
+`codex-blocked`). Describe blockers and resolution conditions in the PR body;
+this title policy does not waive quality gates or approvals.

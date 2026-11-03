@@ -3,11 +3,13 @@ package com.project.scenepickbe.content.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -17,11 +19,35 @@ import com.project.scenepickbe.content.dao.ContentDao;
 import com.project.scenepickbe.content.dto.response.ContentImportResponse;
 import com.project.scenepickbe.content.enums.ContentType;
 import com.project.scenepickbe.content.vo.ContentVo;
+import com.project.scenepickbe.content.vo.EpisodeVo;
+import com.project.scenepickbe.content.mapper.ContentDtoMapper;
 import com.project.scenepickbe.infrastructure.tmdb.TmdbClient;
 import com.project.scenepickbe.infrastructure.tmdb.dto.response.TmdbResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ContentCommandServiceTest {
+
+	@Test
+	void importsEpisodeAirDatesAndMapsThemToResponse() {
+		LocalDate airDate = LocalDate.of(2026, 11, 3);
+		when(contentDao.selectContentIdByTmdb(789L, ContentType.TV)).thenReturn(null, 100L);
+		when(tmdbClient.getTvDetail(789L)).thenReturn(new TmdbResponse.TvDetail(
+			789L, "시리즈", null, null, List.of(), List.of(new TmdbResponse.SeasonSummary(1, "시즌 1"))));
+		when(tmdbClient.getTvSeason(789L, 1)).thenReturn(new TmdbResponse.SeasonDetail(
+			1, "시즌 1", null, null, List.of(
+				new TmdbResponse.Episode(1, "방영 회차", null, null, airDate),
+				new TmdbResponse.Episode(2, "미정 회차", null, null, null))));
+
+		contentCommandService.importFromTmdb(ContentType.TV, 789L, false);
+
+		var captor = ArgumentCaptor.forClass(EpisodeVo.class);
+		verify(contentDao, times(2)).insertContentEpisode(captor.capture());
+		assertThat(captor.getAllValues()).extracting(EpisodeVo::getAirDate).containsExactly(airDate, null);
+		ContentDtoMapper mapper = Mappers.getMapper(ContentDtoMapper.class);
+		assertThat(mapper.toEpisodes(captor.getAllValues()))
+			.extracting(episode -> episode.airDate()).containsExactly(airDate, null);
+		verify(contentDao, never()).deleteContentEpisodes(anyLong());
+	}
 
 	@InjectMocks
 	private ContentCommandService contentCommandService;

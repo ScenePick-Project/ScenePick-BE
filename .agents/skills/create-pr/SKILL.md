@@ -44,7 +44,8 @@ this repository's PR template.
    A missing/stale report returns to the caller for refresh before push; do not
    silently omit it. This handoff applies only when requested by the caller,
    not to unrelated standalone PRs or leftover files in `build/`.
-8. Render the PR body from `.github/pull_request_template.md`.
+8. Render the PR body from `.github/pull_request_template.md`, following
+   [PR readability](rules/pr-description.md) and [PR title format](rules/pr-title.md).
 9. Push the current branch to the remote, using `-u` if needed.
 10. Create or update the PR with `gh`, using `--draft` when draft state is
    required.
@@ -90,8 +91,11 @@ context, stop and ask for it before creating the PR.
 - Use `<emoji> [<type>] <summary>`, for example `✨ [feat] 리뷰 알림 추가`.
 - Choose the type for the delivered change and its matching emoji from RULES.md.
 - Reuse the issue summary only when it matches the final scope; normalize its prefix to this format.
-- Do not add `[draft]`, `[Draft]`, or `Draft:` to the title. Set draft state with `--draft`.
-- See [PR title format](rules/pr-title.md) for examples. Existing blocked-reporting requirements still apply.
+- Do not add status prefixes such as `[blocked]`, `[draft]`, `[Draft]`, or `Draft:`
+  to the title. Use GitHub draft state and the issue status label instead.
+- Explain blockers and their resolution conditions in the body. Keep all quality
+  gates and approval requirements unchanged.
+- See [PR title format](rules/pr-title.md) for examples.
 
 ## GitHub execution rules
 
