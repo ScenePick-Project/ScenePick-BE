@@ -23,6 +23,27 @@ class TmdbClientTest {
 	private MockRestServiceServer server;
 	private TmdbClient client;
 
+	@Test
+	void readsEpisodeAirDatesIncludingUnknownDates() {
+		server.expect(request -> assertThat(request.getURI().getPath()).isEqualTo("/3/tv/21/season/1"))
+			.andRespond(withSuccess("""
+				{"season_number":1,"episodes":[
+					{"episode_number":1,"air_date":"2026-11-02"},
+					{"episode_number":2,"air_date":"2026-11-03"},
+					{"episode_number":3,"air_date":"2026-11-04"},
+					{"episode_number":4,"air_date":null},
+					{"episode_number":5,"air_date":""},
+					{"episode_number":6}
+				]}
+				""", MediaType.APPLICATION_JSON));
+
+		assertThat(client.getTvSeason(21L, 1).episodeList())
+			.extracting(TmdbResponse.Episode::airDate)
+			.containsExactly(LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 3),
+				LocalDate.of(2026, 11, 4), null, null, null);
+		server.verify();
+	}
+
 	@BeforeEach
 	void setUp() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("https://tmdb.test/3");

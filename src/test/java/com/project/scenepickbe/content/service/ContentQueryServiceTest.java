@@ -136,8 +136,8 @@ class ContentQueryServiceTest {
 		when(contentDao.selectSeasonEpisodes(contentId, seasonNo)).thenReturn(List.of(mockVo1, mockVo2));
 
 		ContentResponse.EpisodeList expected = new ContentResponse.EpisodeList(List.of(
-			new ContentResponse.Episode(1L, 1, "제목A", null, null),
-			new ContentResponse.Episode(2L, 2, "제목B", null, null)
+			new ContentResponse.Episode(1L, 1, "제목A", null, null, null),
+			new ContentResponse.Episode(2L, 2, "제목B", null, null, null)
 		));
 
 		ContentResponse.EpisodeList result = contentQueryService.getEpisodes(contentId, seasonNo);

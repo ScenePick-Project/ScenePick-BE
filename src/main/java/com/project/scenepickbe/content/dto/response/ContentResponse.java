@@ -1,5 +1,6 @@
 package com.project.scenepickbe.content.dto.response;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -96,7 +97,10 @@ public class ContentResponse {
 		String summary,
 
 		@Schema(description = "회차 썸네일 이미지 URL")
-		String stillImageUrl
+		String stillImageUrl,
+
+		@Schema(description = "방영일, yyyy-MM-dd (미확인 또는 미정이면 null)")
+		LocalDate airDate
 	) {
 	}
 

@@ -60,7 +60,7 @@
     </select>
 
     <select id="selectSeasonEpisodes" resultType="EpisodeVo">
-        SELECT E.EPISODE_ID, E.SEASON_NO, E.EPISODE_NO, E.TITLE, E.SUMMARY, E.STILL_IMAGE_URL
+        SELECT E.EPISODE_ID, E.SEASON_NO, E.EPISODE_NO, E.TITLE, E.SUMMARY, E.STILL_IMAGE_URL, E.AIR_DATE
         FROM CONTENT_EPISODE E
         WHERE E.CONTENT_ID = #{contentId}
           AND E.SEASON_NO = #{seasonNo}
@@ -144,10 +144,11 @@
     </insert>
 
     <insert id="insertContentEpisode">
-        INSERT INTO CONTENT_EPISODE (CONTENT_ID, SEASON_NO, EPISODE_NO, TITLE, SUMMARY, STILL_IMAGE_URL)
+        INSERT INTO CONTENT_EPISODE (CONTENT_ID, SEASON_NO, EPISODE_NO, TITLE, SUMMARY, STILL_IMAGE_URL, AIR_DATE)
         VALUES (#{contentId}, #{seasonNo}, #{episodeNo}, #{title},
                 #{summary, jdbcType=VARCHAR},
-                #{stillImageUrl, jdbcType=VARCHAR})
+                #{stillImageUrl, jdbcType=VARCHAR},
+                #{airDate, jdbcType=DATE})
     </insert>
 
     <insert id="insertContentSeason">

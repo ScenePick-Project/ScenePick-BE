@@ -1,5 +1,6 @@
 package com.project.scenepickbe.infrastructure.tmdb.dto.response;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -138,7 +139,11 @@ public class TmdbResponse {
 
 		@JsonProperty("still_path")
 		@Schema(description = "스틸컷 이미지 경로")
-		String stillPath
+		String stillPath,
+
+		@JsonProperty("air_date")
+		@Schema(description = "방영일 (미정이면 null)")
+		LocalDate airDate
 	) {
 	}
 

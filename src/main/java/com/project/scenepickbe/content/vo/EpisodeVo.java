@@ -1,5 +1,7 @@
 package com.project.scenepickbe.content.vo;
 
+import java.time.LocalDate;
+
 import org.apache.ibatis.type.Alias;
 
 import lombok.Data;
@@ -28,4 +30,7 @@ public class EpisodeVo {
 
 	/** 회차 썸네일 이미지 URL */
 	private String stillImageUrl;
+
+	/** 방영일 (미확인 또는 미정이면 null) */
+	private LocalDate airDate;
 }

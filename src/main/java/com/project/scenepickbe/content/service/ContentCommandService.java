@@ -233,6 +233,7 @@ public class ContentCommandService {
 				episodeVo.setTitle(episode.name());
 				episodeVo.setSummary(episode.overview());
 				episodeVo.setStillImageUrl(tmdbClient.toImageUrl(episode.stillPath()));
+				episodeVo.setAirDate(episode.airDate());
 				contentDao.insertContentEpisode(episodeVo);
 			}
 		}
