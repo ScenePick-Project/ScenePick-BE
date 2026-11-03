@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--DAO-->
 <mapper namespace="com.project.scenepickbe.user.dao.RefreshTokenDao">
+    <update id="revokeAllUserRefreshTokens">
+        UPDATE USER_REFRESH_TOKEN
+        SET REVOKED_YN = 'Y', REVOKED_AT = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+        AND REVOKED_YN = 'N'
+    </update>
+
     <!--REFRESH TOKEN 저장-->
     <insert id="insertUserRefreshToken">
         INSERT INTO USER_REFRESH_TOKEN (USER_ID, JTI, EXPIRES_AT, REVOKED_YN)

@@ -9,6 +9,7 @@ import com.project.scenepickbe.user.dao.RefreshTokenDao;
 import com.project.scenepickbe.user.dao.UserDao;
 import com.project.scenepickbe.user.dto.UserRequest;
 import com.project.scenepickbe.user.dto.UserResponse;
+import com.project.scenepickbe.user.enums.AuthProvider;
 import com.project.scenepickbe.user.enums.Role;
 import com.project.scenepickbe.user.vo.UserVo;
 import jakarta.transaction.Transactional;
@@ -21,6 +22,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +36,34 @@ public class UserCommandService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final ModelMapper modelMapper;
 	private final PasswordEncoder passwordEncoder;
+
+	@Transactional
+	public void changePassword(String userId, UserRequest.PasswordChange request) {
+		UserVo user = userDao.selectUserById(userId);
+		if (user == null) {
+			throw new GeneralException(ErrorStatus.USER_NOT_FOUND);
+		}
+		if (user.getPassword() == null || user.getPassword().isBlank()
+			|| (user.getProvider() != null
+				&& user.getProvider() != AuthProvider.LOCAL)) {
+			throw new GeneralException(ErrorStatus.USER_PASSWORD_UNAVAILABLE);
+		}
+		if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+			throw new GeneralException(ErrorStatus.USER_PASSWORD_MISMATCH);
+		}
+		if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+			throw new GeneralException(ErrorStatus.USER_PASSWORD_UNCHANGED);
+		}
+		// BCrypt는 UTF-8 기준 72바이트까지만 저장할 수 있다.
+		if (request.newPassword().getBytes(StandardCharsets.UTF_8).length > 72) {
+			throw new GeneralException(ErrorStatus._BAD_REQUEST);
+		}
+		String encoded = passwordEncoder.encode(request.newPassword());
+		if (userDao.updatePassword(userId, user.getPassword(), encoded) != 1) {
+			throw new GeneralException(ErrorStatus.USER_PASSWORD_MISMATCH);
+		}
+		refreshTokenDao.revokeAllUserRefreshTokens(userId);
+	}
 
 	/**
 	 * 회원가입
@@ -113,12 +143,16 @@ public class UserCommandService {
 		if (exists == 0)
 			throw new RuntimeException("유효하지 않은 Refresh Token입니다.");
 
-		refreshTokenDao.revokeUserRefreshToken(payload.getUserId(), payload.getJti());
-
 		UserVo userVo = userDao.selectUser(payload.getUserId());
 		if (userVo == null) {
 			throw new GeneralException(ErrorStatus.USER_LOGIN_FAILED);
 		}
+
+		// 회원 행 잠금 대기 중 비밀번호 변경으로 폐기됐을 수 있으므로 다시 확인한다.
+		if (refreshTokenDao.existsActive(payload.getUserId(), payload.getJti()) == 0) {
+			throw new RuntimeException("유효하지 않은 Refresh Token입니다.");
+		}
+		refreshTokenDao.revokeUserRefreshToken(payload.getUserId(), payload.getJti());
 
 		String authority = "ROLE_" + userVo.getRole();
 

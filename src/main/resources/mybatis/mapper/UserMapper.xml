@@ -2,6 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.scenepickbe.user.dao.UserDao">
+    <!-- 잠금 조회는 캐시를 비워 실제 잠금과 최신 토큰 상태 재검증을 보장한다. -->
+    <select id="selectUserById" resultType="UserVo" flushCache="true">
+        SELECT USER_ID, PASSWORD, PROVIDER
+        FROM USERS
+        WHERE USER_ID = #{userId}
+        AND DEL_YN = 'N'
+        FOR UPDATE
+    </select>
+
+    <update id="updatePassword">
+        UPDATE USERS
+        SET PASSWORD = #{newPassword}, UPDATED_AT = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+        AND PASSWORD = #{currentPassword}
+        AND DEL_YN = 'N'
+        AND (PROVIDER IS NULL OR PROVIDER = 'LOCAL')
+    </update>
+
     <!--회원가입-->
     <insert id="insertUser">
         INSERT INTO USERS (USER_ID, EMAIL, USERNAME, PASSWORD, ROLE, PROVIDER, PROVIDER_ID, CREATED_AT)
@@ -33,7 +51,7 @@
     </select>
 
     <!--회원 로그인 정보 조회-->
-    <select id="selectUser" resultType="UserVo">
+    <select id="selectUser" resultType="UserVo" flushCache="true">
         SELECT USER_ID
         , EMAIL
         , PASSWORD
@@ -41,6 +59,7 @@
         FROM USERS
         WHERE (USER_ID = #{loginId} OR EMAIL = #{loginId})
         AND DEL_YN = 'N'
+        FOR UPDATE
     </select>
 
     <!--OAuth 계정 확인-->

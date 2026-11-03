@@ -31,6 +31,10 @@ public enum ErrorStatus implements BaseErrorCode {
 	USER_EMAIL_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "USER4004", "이미 존재하는 이메일입니다."),
 	USER_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "USER4005", "아이디 또는 비밀번호가 올바르지 않습니다."),
 
+	USER_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "USER4006", "현재 비밀번호가 올바르지 않습니다."),
+	USER_PASSWORD_UNCHANGED(HttpStatus.BAD_REQUEST, "USER4007", "현재 비밀번호와 다른 비밀번호를 입력해주세요."),
+	USER_PASSWORD_UNAVAILABLE(HttpStatus.BAD_REQUEST, "USER4008", "소셜 전용 회원은 비밀번호를 변경할 수 없습니다."),
+
 	// Content
 	CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT4001", "해당 작품을 찾을 수 없습니다."),
 	CONTENT_IMPORT_FAIL(HttpStatus.NOT_FOUND, "CONTENT4002", "TMDB 작품 등록에 실패했습니다."),

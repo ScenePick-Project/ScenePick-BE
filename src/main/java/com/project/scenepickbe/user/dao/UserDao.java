@@ -7,6 +7,11 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface UserDao {
 
+	UserVo selectUserById(@Param("userId") String userId);
+
+	int updatePassword(@Param("userId") String userId, @Param("currentPassword") String currentPassword,
+		@Param("newPassword") String newPassword);
+
 	// 회원가입
 	void insertUser(@Param("vo") UserVo vo);
 
