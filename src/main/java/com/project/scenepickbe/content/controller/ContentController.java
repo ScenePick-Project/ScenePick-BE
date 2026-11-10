@@ -30,6 +30,13 @@ public class ContentController {
 		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getBasicInfo(contentId)));
 	}
 
+	@Operation(summary = "작품 리뷰 별점 집계 조회")
+	@DocSuccess(ContentResponse.RatingSummary.class)
+	@GetMapping("/{contentId}/rating-summary")
+	public ResponseEntity<ApiResponse<?>> getRatingSummary(@PathVariable Long contentId) {
+		return ResponseEntity.ok(ApiResponse.onSuccess(contentQueryService.getRatingSummary(contentId)));
+	}
+
 	@Operation(summary = "작품 출연진 조회", description = "영화 출연진 리스트를 조회합니다.")
 	@GetMapping("/{contentId}/credits")
 	@DocSuccess(ContentResponse.CreditList.class)

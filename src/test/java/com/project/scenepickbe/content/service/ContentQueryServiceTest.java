@@ -148,4 +148,21 @@ class ContentQueryServiceTest {
 
 		verify(contentDao, times(1)).selectSeasonEpisodes(contentId, seasonNo);
 	}
+
+	@Test
+	void ratingSummaryRejectsMissingContent() {
+		when(contentDao.selectContentBasic(999L)).thenReturn(null);
+		assertThatThrownBy(() -> contentQueryService.getRatingSummary(999L))
+			.isInstanceOf(GeneralException.class)
+			.satisfies(error -> assertThat(((GeneralException)error).getCode()).isEqualTo(ErrorStatus.CONTENT_NOT_FOUND));
+		verify(contentDao, never()).selectRatingSummary(anyLong());
+	}
+
+	@Test
+	void ratingSummaryReturnsAggregateForExistingContent() {
+		var summary = new ContentResponse.RatingSummary(new java.math.BigDecimal("3.75"), 2L);
+		when(contentDao.selectContentBasic(1L)).thenReturn(new ContentVo());
+		when(contentDao.selectRatingSummary(1L)).thenReturn(summary);
+		assertThat(contentQueryService.getRatingSummary(1L)).isEqualTo(summary);
+	}
 }

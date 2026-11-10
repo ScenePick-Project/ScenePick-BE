@@ -1,5 +1,6 @@
 package com.project.scenepickbe.content.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,6 +31,13 @@ public class ContentResponse {
 
 		@Schema(description = "시즌 리스트 (TV만 제공)")
 		List<Season> seasonList
+	) {
+	}
+
+	@Schema(name = "RatingSummary", description = "작품 리뷰 별점 집계")
+	public record RatingSummary(
+		@Schema(description = "평균 별점, 평가가 없으면 null") BigDecimal averageRating,
+		@Schema(description = "별점을 남긴 리뷰 수") Long ratingCount
 	) {
 	}
 
