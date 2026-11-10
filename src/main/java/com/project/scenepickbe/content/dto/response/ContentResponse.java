@@ -36,8 +36,8 @@ public class ContentResponse {
 
 	@Schema(name = "RatingSummary", description = "작품 리뷰 별점 집계")
 	public record RatingSummary(
-		@Schema(description = "평균 별점, 평가가 없으면 null") BigDecimal averageRating,
-		@Schema(description = "별점을 남긴 리뷰 수") Long ratingCount
+		@Schema(description = "평균 별점, 리뷰가 없으면 null. 미평가 리뷰는 0점으로 계산") BigDecimal averageRating,
+		@Schema(description = "삭제되지 않은 전체 리뷰 수") Long ratingCount
 	) {
 	}
 

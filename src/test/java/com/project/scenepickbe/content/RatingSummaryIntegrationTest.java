@@ -25,7 +25,7 @@ class RatingSummaryIntegrationTest {
 		.withStartupTimeout(Duration.ofMinutes(8));
 
 	@Test
-	void calculatesOnlyRatedActiveReviewsForSelectedContent() throws Exception {
+	void includesUnratedActiveReviewsAsZeroForSelectedContent() throws Exception {
 		var source = new DriverManagerDataSource(ORACLE.getJdbcUrl(), ORACLE.getUsername(), ORACLE.getPassword());
 		var db = new JdbcTemplate(source);
 		db.execute("CREATE TABLE REVIEW (CONTENT_ID NUMBER, RATING NUMBER(2,1), DEL_YN VARCHAR2(1))");
@@ -46,10 +46,14 @@ class RatingSummaryIntegrationTest {
 			db.update("INSERT INTO REVIEW VALUES (1, NULL, 'N')");
 			db.update("INSERT INTO REVIEW VALUES (1, 1, 'Y')");
 			db.update("INSERT INTO REVIEW VALUES (2, 5, 'N')");
+			db.update("INSERT INTO REVIEW VALUES (3, NULL, 'N')");
 			session.clearCache();
 			var summary = dao.selectRatingSummary(1L);
-			assertThat(summary.averageRating()).isEqualByComparingTo("3.75");
-			assertThat(summary.ratingCount()).isEqualTo(2L);
+			assertThat(summary.averageRating()).isEqualByComparingTo("2.5");
+			assertThat(summary.ratingCount()).isEqualTo(3L);
+			var unratedOnly = dao.selectRatingSummary(3L);
+			assertThat(unratedOnly.averageRating()).isEqualByComparingTo("0");
+			assertThat(unratedOnly.ratingCount()).isEqualTo(1L);
 		}
 	}
 }

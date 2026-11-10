@@ -61,9 +61,9 @@
     </resultMap>
 
     <select id="selectRatingSummary" resultMap="ratingSummaryMap">
-        SELECT AVG(R.RATING) AS AVERAGE_RATING, COUNT(R.RATING) AS RATING_COUNT
+        SELECT AVG(COALESCE(R.RATING, 0)) AS AVERAGE_RATING, COUNT(*) AS RATING_COUNT
         FROM REVIEW R
-        WHERE R.CONTENT_ID = #{id} AND R.DEL_YN = 'N' AND R.RATING IS NOT NULL
+        WHERE R.CONTENT_ID = #{id} AND R.DEL_YN = 'N'
     </select>
 
     <select id="selectContentCredits" resultType="CreditVo">
