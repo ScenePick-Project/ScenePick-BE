@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.project.scenepickbe.content.dto.response.ContentResponse;
 import com.project.scenepickbe.content.enums.ContentType;
 import com.project.scenepickbe.content.enums.GenreType;
 import com.project.scenepickbe.content.vo.ContentSeasonVo;
@@ -24,6 +25,8 @@ public interface ContentDao {
 	 * 특정 작품 기본 정보 조회
 	 */
 	ContentVo selectContentBasic(Long contentId);
+
+	ContentResponse.RatingSummary selectRatingSummary(Long contentId);
 
 	/**
 	 * 특정 작품에 속한 출연진 리스트 조회

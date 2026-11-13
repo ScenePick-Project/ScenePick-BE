@@ -52,6 +52,13 @@ public class ContentQueryService {
 		);
 	}
 
+	public ContentResponse.RatingSummary getRatingSummary(Long contentId) {
+		if (contentDao.selectContentBasic(contentId) == null) {
+			throw new GeneralException(ErrorStatus.CONTENT_NOT_FOUND);
+		}
+		return contentDao.selectRatingSummary(contentId);
+	}
+
 	/**
 	 * 작품 출연진 리스트 조회
 	 * @param contentId 작품 고유 ID

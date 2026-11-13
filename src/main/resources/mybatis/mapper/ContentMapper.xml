@@ -53,6 +53,19 @@
         WHERE C.CONTENT_ID = #{id}
     </select>
 
+    <resultMap id="ratingSummaryMap" type="com.project.scenepickbe.content.dto.response.ContentResponse$RatingSummary">
+        <constructor>
+            <arg column="AVERAGE_RATING" javaType="java.math.BigDecimal"/>
+            <arg column="RATING_COUNT" javaType="java.lang.Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectRatingSummary" resultMap="ratingSummaryMap">
+        SELECT AVG(COALESCE(R.RATING, 0)) AS AVERAGE_RATING, COUNT(*) AS RATING_COUNT
+        FROM REVIEW R
+        WHERE R.CONTENT_ID = #{id} AND R.DEL_YN = 'N'
+    </select>
+
     <select id="selectContentCredits" resultType="CreditVo">
         SELECT C.CREDIT_ID, C.CONTENT_ID, C.SEASON_ID, C.NAME, C.CHAR_NAME, C.PROFILE_IMAGE_URL
         FROM CONTENT_CREDIT C
